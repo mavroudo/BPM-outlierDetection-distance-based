@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Distance import calculateDiffernce
 import matplotlib.pyplot as plt 
 import os
-
-def findAllDistances(results,minmaxTimes):  
-    #find all the distances in the upper corner
-    distances=[[]for i in range(len(results))]
-    for i in range(len(results)):
-        print(i)
-        for j in range(len(results)):
-            if j<=i:
-                distances[i].append(0)
-            else:
-                distances[i].append(calculateDiffernce(results[i],results[j],minmaxTimes))
-    return distances
 
 def writeToFile(distances, filesName):
     if os.path.exists(filesName):
@@ -45,7 +32,8 @@ def readFromFile(filesName):
 def plotDistanceDistribution(distances,plotTitle):
     #find max and max of maxs
     maxes=[max(d) for d in distances]
-    maxMax=max(maxes) # the biggest distance is 254   
+    maxMax=max(maxes) # the biggest distance is 254 
+
     #plot the distance distribution
     countDistances=[0 for i in range(maxMax+1)]
     for trace in distances:
@@ -57,5 +45,5 @@ def plotDistanceDistribution(distances,plotTitle):
     plt.plot(x, countDistances) 
     plt.xlabel('distance') 
     plt.ylabel('instances') 
-    plt.title('Distance Distribution') 
+    plt.title(plotTitle) 
     plt.savefig(plotTitle+'.png')
