@@ -20,6 +20,11 @@ distanceSampling=findAllDistancesWithSampling(results,statsTimes,percentOfData=0
 from distanceEvaluation import writeToFile
 writeToFile(distanceSampling,"distancesSampling.txt")
 
+from DistanceSamplingEquallyWeigthed import findAllDistancesEquallyWeighted
+maxActivities=max([len(logs) for logs in log])
+distanceEqually=findAllDistancesEquallyWeighted(results,statsTimes,maxActivities,percentOfData=0.1,numberOfCells=20)
+from distanceEvaluation import writeToFile
+writeToFile(distanceEqually,"distancesEqually.txt")
 
 
 #Have already being saved in a file
@@ -27,8 +32,12 @@ from distanceEvaluation import readFromFile
 from distanceEvaluation import plotDistanceDistribution
 distancesNaive=readFromFile("distancesNaive.txt")
 plotDistanceDistribution(distancesNaive,"DistributionNaiveDistance")
+
 distanceSampling=readFromFile("distancesSampling.txt")
 plotDistanceDistribution(distanceSampling,"DistributionSamplingDistance")
+
+distanceEqually=readFromFile("distancesEqually.txt")
+plotDistanceDistribution(distanceEqually,"DistributionDistancesEqually")
 
 
 
@@ -37,9 +46,14 @@ from outlierDetectionKNN import testKNNparameters
 R=[5,10,20,30,50]
 K=[20,50,100,200,500]
 print("NaiveDistance")
-testKNNparameters(R,K,distancesNaive)
+testKNNparameters(R,K,distancesNaive,log)
 print("SamplingDistance")
-testKNNparameters(R,K,distanceSampling)
+testKNNparameters(R,K,distanceSampling,log)
+print("DistancesEqually")
+testKNNparameters(R,K,distanceEqually,log)
+
+from outlierDetectionKNN import outliersKNN
+outliers=outliersKNN(distanceEqually,50,500,log)
 
 
 

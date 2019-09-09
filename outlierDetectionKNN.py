@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-def outliersKNN(distances,R,k):
+def outliersKNN(distances,R,k,log):
    outliers=[]  
    d=0
    for indexTrace,trace in enumerate(distances):
@@ -15,12 +15,12 @@ def outliersKNN(distances,R,k):
               if count==k:
                   break
        if count<k:
-           outliers.append(trace)
+           outliers.append(log[indexTrace])
    return outliers
    
-def testKNNparameters(R,K,distances):
+def testKNNparameters(R,K,distances,log):
     for r in R:
         for k in K:
-            outliers=outliersKNN(distances,r,k)
+            outliers=outliersKNN(distances,r,k,log)
             print(str(r)+", "+str(k)+", "+str(len(outliers)))
 
