@@ -29,6 +29,36 @@ def dataPreprocess(log):
     times=[sorted(times[i]) for i in range(len(activities))]
     return results,times
 
+
+def getActivityLetter(index,letters):
+    result=str(letters[index%26])
+    if int(index/26) !=0:
+        result+=str(int(index/26))
+    return result
+
+def transformAtrace(trace,bag):
+    traceSeq=""
+    for activity in trace:
+        for index,bagAct in enumerate(bag[0]):
+            if bagAct==activity["concept:name"]:
+                traceSeq+=bag[1][index]+","
+    return traceSeq[:-1]
+
+def dataSequence(log):   
+    activities = log_attributes_filter.get_attribute_values(log, "concept:name")
+    letters=[i for i in "abcdefghijklmnopqrstuvwxyz"]
+    bag=[[]for i in range(2)]
+    for i in activities:
+        bag[0].append(i)
+    for index,activity in enumerate(activities):
+        bag[1].append(getActivityLetter(index,letters))
+    response=[]
+    for trace in log:
+        response.append(transformAtrace(trace,bag))
+    return response,bag
+    
+    
+    
 # up untill here we have the logs loaded as dataframe0
 
 

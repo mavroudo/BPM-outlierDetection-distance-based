@@ -8,6 +8,7 @@ __pycache__/
 
 #Text files
 *.txt
+*.xes
 
 # Distribution / packaging
 .Python
