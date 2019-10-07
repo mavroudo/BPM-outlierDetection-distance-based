@@ -5,6 +5,19 @@
 #Load for the first time
 from pm4py.objects.log.importer.xes import factory as xes_factory
 log=xes_factory.apply("BPI_Challenge_2012.xes")
+log2=xes_factory.apply("BPI Challenge 2017.xes")
+
+from DataPreprocess import dataSequence
+dataSequence,bag=dataSequence(log)
+from CreatingGraph import condactWeightedEdges
+weightedEdges=condactWeightedEdges(dataSequence,bag[1])
+
+
+dataSequence2,bag2=dataSequence(log2)
+weightedEdges=condactWeightedEdges(dataSequence2,bag2[1])
+
+
+
 from DataPreprocess import dataPreprocess
 results,statsTimes=dataPreprocess(log)
 minmaxTimes=[[min(statsTimes[i]),max(statsTimes[i])] for i in range(len(statsTimes))]
