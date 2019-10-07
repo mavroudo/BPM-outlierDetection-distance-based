@@ -47,14 +47,15 @@ R=[5,10,20,30,50]
 K=[20,50,100,200,500]
 print("NaiveDistance")
 testKNNparameters(R,K,distancesNaive,log)
+
 print("SamplingDistance")
 testKNNparameters(R,K,distanceSampling,log)
+
 print("DistancesEqually")
 testKNNparameters(R,K,distanceEqually,log)
 
 from outlierDetectionKNN import outliersKNN
 outliers=outliersKNN(distanceEqually,50,500,log)
-
 
 
 
