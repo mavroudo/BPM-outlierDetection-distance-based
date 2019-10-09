@@ -11,10 +11,13 @@ from DataPreprocess import dataSequence
 dataSequence,bag=dataSequence(log)
 from CreatingGraph import condactWeightedEdges
 weightedEdges=condactWeightedEdges(dataSequence,bag[1])
+from CreatingGraph import outliers
+outlierSequences,outlierEdges=outliers(weightedEdges,0.1,dataSequence)
 
 
 dataSequence2,bag2=dataSequence(log2)
 weightedEdges=condactWeightedEdges(dataSequence2,bag2[1])
+outlierSequences,outlierEdges=outliers(weightedEdges,0.1,dataSequence)
 
 
 
