@@ -7,13 +7,14 @@ from pm4py.objects.log.importer.xes import factory as xes_factory
 log=xes_factory.apply("BPI_Challenge_2012.xes")
 log2=xes_factory.apply("BPI Challenge 2017.xes")
 
+#outlier detection based on sequences 
 from DataPreprocess import dataSequence
-dataSequence,bag=dataSequence(log)
 from CreatingGraph import condactWeightedEdges
-weightedEdges=condactWeightedEdges(dataSequence,bag[1])
 from CreatingGraph import outliers
-outlierSequences,outlierEdges=outliers(weightedEdges,0.1,dataSequence)
 
+dataSequence,bag=dataSequence(log)
+weightedEdges=condactWeightedEdges(dataSequence,bag[1])
+outlierSequences,outlierEdges=outliers(weightedEdges,0.1,dataSequence)
 
 dataSequence2,bag2=dataSequence(log2)
 weightedEdges=condactWeightedEdges(dataSequence2,bag2[1])
@@ -22,7 +23,12 @@ outlierSequences,outlierEdges=outliers(weightedEdges,0.1,dataSequence)
 
 
 from DataPreprocess import dataPreprocess
+from DataPreprocess import transform
 results,statsTimes=dataPreprocess(log)
+sequenceStandarized,timeStandarized=transform(results,statsTimes)
+
+
+
 minmaxTimes=[[min(statsTimes[i]),max(statsTimes[i])] for i in range(len(statsTimes))]
 
 #distance naive with uniform distributon of time and not equally value in the final metric

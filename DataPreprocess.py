@@ -4,14 +4,11 @@ import datetime
 from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
 def dataPreprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
-    org_all=log_attributes_filter.get_attribute_values(log,"org:resource")
     activities=list(activities_all.keys())
-    org=list(org_all.keys())
     results=[]
     times=[[] for i in range(len(activities))]
     for trace in log:
         k=[0 for i in range(len(activities))]
-        l=[0 for i in range(len(org))]
         timesSpend=[datetime.timedelta(0) for i in range(len(activities))]
         previousTime=trace.attributes["REG_DATE"]
         for index,event in enumerate(trace):
@@ -20,16 +17,32 @@ def dataPreprocess(log):
             timesSpend[indexActivity]+=event["time:timestamp"]-previousTime
             times[indexActivity].append(event["time:timestamp"]-previousTime)
             previousTime=event["time:timestamp"]
-            try:
-                l[org.index(event["org:resource"])]+=1
-            except:
-                pass
         timesSpend=[timesSpend[i]/k[i] if k[i]!=0 else 0 for i in range(len(activities))] #this is where the int comes from
         results.append(k+timesSpend) #removed org
     times=[sorted(times[i]) for i in range(len(activities))]
     return results,times
 
+import statistics 
+def transform(data,timeData):
+    #first we take data from sequence, calculate mean and stdev and then transform the table
+    sequenceTable=[[i[j] for i in data] for j in range(int(len(data[0])/2))]
+    meanSDSequence=[[statistics.mean(i),statistics.stdev(i)] for i in sequenceTable]
+    sequenceTransformed=standarization(sequenceTable,meanSDSequence)
+    #then we do the same for the time table
+    timeTable=[[i[j].total_seconds() if i[j]!=0 else 0.0 for i in data] for j in range(int(len(data[0])/2),len(data[0]))]
+    timeToSeconds=[[i.total_seconds() for i in j] for j in timeData]
+    meanSDTime=[[statistics.mean(i),statistics.stdev(i)] for i in timeToSeconds]    
+    timeTransformed=standarization(timeTable,meanSDTime)
+    #return the transposed data
+    return transpose(sequenceTransformed),transpose(timeTransformed)
+    
+def standarization(data,meanSD):
+    return[[(i-meanSD[j][0])/meanSD[j][1] if meanSD[j][1]!=0 else i  for i in data[j]] for j in range(len(data))]
 
+def transpose(data):
+    return [[i[j] for i in data] for j in range(len(data[0]))]
+    
+#This is for the data sequence
 def getActivityLetter(index,letters):
     result=str(letters[index%26])
     if int(index/26) !=0:
