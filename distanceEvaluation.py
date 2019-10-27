@@ -32,13 +32,12 @@ def readFromFile(filesName):
 def plotDistanceDistribution(distances,plotTitle):
     #find max and max of maxs
     maxes=[max(d) for d in distances]
-    maxMax=max(maxes) # the biggest distance is 254 
-
+    maxMax=max(maxes) 
     #plot the distance distribution
-    countDistances=[0 for i in range(maxMax+1)]
+    countDistances=[0 for i in range(int(maxMax)+1)]
     for trace in distances:
         for distance in trace:
-            countDistances[distance]+=1
+            countDistances[int(distance)]+=1
     countDistances[0]=0
     #plotting
     x=[i for i in range(1,len(countDistances)+1)]

@@ -23,4 +23,5 @@ def testKNNparameters(R,K,distances,log):
         for k in K:
             outliers=outliersKNN(distances,r,k,log)
             print(str(r)+", "+str(k)+", "+str(len(outliers)))
+            yield [r,k,outliers]
 
