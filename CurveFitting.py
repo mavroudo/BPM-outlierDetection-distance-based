@@ -37,15 +37,25 @@ def calculateDistributions(timeData):
     observed_frequency, bins = np.histogram(y_std, bins=percentile_cutoffs)
     cum_observed_frequency = np.cumsum(observed_frequency)
     
-    for index,distribution in enumerate(dist_names):
+    for index,distribution in enumerate(list(dist_names)):
         # Set up distribution and get fitted distribution parameters
         dist = getattr(scipy.stats, distribution)
         param = dist.fit(y_std)
-        
+        #cannotResolve=[]
         # Obtain the KS test P statistic, round it to 5 decimal places
-        p = scipy.stats.kstest(y_std, distribution, args=param)
-        p = np.around(p[1], 5)
-        p_values.append(p)    
+        try:
+            p = scipy.stats.kstest(y_std, distribution, args=param)
+            p = np.around(p[1], 5)
+            p_values.append(p) 
+        except Exception  :
+            try:
+                print(distribution)
+                p_values.append(0.0) 
+                #cannotResolve.append(distribution)
+                #continue
+            except:
+                return ["non",0,0]
+   
         
         # Get expected counts in percentile bins
         # This is based on a 'cumulative distrubution function' (cdf)
@@ -60,13 +70,16 @@ def calculateDistributions(timeData):
         cum_expected_frequency = np.cumsum(expected_frequency)
         ss = sum (np.nan_to_num(((cum_expected_frequency - cum_observed_frequency) ** 2) / cum_observed_frequency))
         chi_square.append(ss)
-        
-    results = pd.DataFrame()
-    results['Distribution'] = dist_names
-    results['chi_square'] = chi_square
-    results['p_value'] = p_values
-    results.sort_values(['chi_square'], inplace=True)
-    return results
+        #dist_names=[i for i in dist_names if i not in cannotResolve]
+    try:   
+        results = pd.DataFrame()
+        results['Distribution'] = dist_names
+        results['chi_square'] = chi_square
+        #results['p_value'] = p_values
+        results.sort_values(['chi_square'], inplace=True)
+        return results
+    except:
+        return ["non",0,0]
 
 log=xes_factory.apply("BPI_Challenge_2012.xes")
 results,statsTimes=dataPreprocess(log)
@@ -75,7 +88,15 @@ dists=[]
 for index,i in enumerate(timeToSeconds):
     print(index)
     k=calculateDistributions(i)
-    dists.append([index,k.iloc[1]['Distribution'],k.iloc[1]['chi_square']])
+    try:
+        dists.append([index,k.iloc[1]['Distribution'],k.iloc[1]['chi_square']])
+    except:
+        dists.append(k)
+        
+temp=[timeToSeconds[3]]
+k=None
+for index,i in enumerate(temp):
+    k=calculateDistributions(i)
 
 f=open("distributions.txt","w")
 for dist in dists:
