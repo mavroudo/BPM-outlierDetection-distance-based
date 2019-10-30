@@ -19,10 +19,12 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 sc=StandardScaler()
 standarized=[]
+standarScalers=[]
 for i in timeToSeconds:
     k=np.array(i)
     k = k.reshape (-1,1)
     sc.fit(k)
+    standarScalers.append(sc)
     standarized.append(sc.transform(k))
     
 #read distrs from txt
@@ -32,7 +34,9 @@ for i in f:
     dists.append(i.split(" "))
 
 #get the distributions in a array
+import warnings  
 import scipy
+warnings.filterwarnings("ignore")
 distributions=[]
 for index,i in enumerate(dists):
     if i[0]!="non":
@@ -43,9 +47,25 @@ for index,i in enumerate(dists):
         distributions.append([])
     
 #perform outlier detection trace by trace
-outliers=[]
-test=standarized[1]
+
+#test=standarized[1]
 dist,param=distributions[1]
 
 for i in test:
     outliers.append(float(dist.pdf(i,*param[:-2], loc=param[-2],scale=param[-1])))
+    
+outliers=[]
+threshold=0.005 #1% if it belongs to 1% of the data in a dist is an outlier
+trace=results[:2]
+for index,i in enumerate(trace):
+    for innerIndex,event in enumerate(i[int(len(i)/2):]): # looping through the time events
+        seconds=0.0 if event == 0 else event.total_seconds()
+        dist,param=distributions[innerIndex]
+        x=standarScalers[innerIndex].transform(np.array(seconds).reshape(1,-1))
+        predict=float(dist.pdf(x,*param[:-2], loc=param[-2],scale=param[-1]))
+        if predict<threshold:
+            outliers.append([index,innerIndex])
+            break
+
+        
+            
