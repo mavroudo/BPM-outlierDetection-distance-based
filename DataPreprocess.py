@@ -17,9 +17,8 @@ def dataPreprocess(log):
             timesSpend[indexActivity]+=event["time:timestamp"]-previousTime
             times[indexActivity].append(event["time:timestamp"]-previousTime)
             previousTime=event["time:timestamp"]
-        timesSpend=[timesSpend[i]/k[i] if k[i]!=0 else 0 for i in range(len(activities))] #this is where the int comes from
-        results.append(k+timesSpend) #removed org
-    times=[sorted(times[i]) for i in range(len(activities))]
+        timesSpend=[timesSpend[i]/k[i] if k[i]!=0 else 0 for i in range(len(activities))] #contains the mo of all the activities
+        results.append(k+timesSpend) 
     return results,times
 
 import statistics 
