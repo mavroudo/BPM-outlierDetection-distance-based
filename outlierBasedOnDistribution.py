@@ -52,7 +52,7 @@ for index,i in enumerate(dists):
     
 #perform outlier detection trace by trace
 outliers=[]
-threshold=0.001 #0,1% if it belongs to 1% of the data in a dist is an outlier
+threshold=0.01 #0,1% if it belongs to 1% of the data in a dist is an outlier
 trace=results[:2]
 for index,i in enumerate(results):
     print(index)

@@ -13,50 +13,47 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
 def calculateDistributions(timeData):
-    y=np.array(timeData)
+    y=np.array(timeData)#create the dataFrame
     size=len(y)
     y_df=pd.DataFrame(y,columns=['Data'])
-    y_df.describe()
-    
-    #transform using standard scaler
-    sc=StandardScaler() 
+    y_df.describe()   
+   
+    sc=StandardScaler() #transform using standard scaler
     yy = y.reshape (-1,1)
     sc.fit(yy)
     y_std =sc.transform(yy)
-    del yy
+    del yy  
     
-    import warnings
+    import warnings #mute the warning from the getattr
     warnings.filterwarnings("ignore")
     dist_names = sorted(
          [k for k in scipy.stats._continuous_distns.__all__ if not (
              (k.startswith('rv_') or k.endswith('_gen') or (k == 'levy_stable') ))])
-    chi_square = []
-    p_values = []
-    percentile_bins = np.linspace(0,100,41)
-    percentile_cutoffs = [round(i,7) for i in np.percentile(y_std, percentile_bins)]
-    observed_frequency, bins = np.histogram(y_std, bins=percentile_cutoffs)
-    cum_observed_frequency = np.cumsum(observed_frequency)
     
+    p_values = [] # Calculate p values    
     for index,distribution in enumerate(list(dist_names)):
         # Set up distribution and get fitted distribution parameters
         dist = getattr(scipy.stats, distribution)
         param = dist.fit(y_std)
-        #cannotResolve=[]
         # Obtain the KS test P statistic, round it to 5 decimal places
         try:
-            p = scipy.stats.kstest(y_std, distribution, args=param)
+            p = scipy.stats.kstest(y_std, distribution, args=param) #memory might broke
             p = np.around(p[1], 5)
             p_values.append(p) 
         except Exception  :
             try:
                 print(distribution)
-                p_values.append(0.0) 
-                #cannotResolve.append(distribution)
-                #continue
+                p_values.append(0.0)
+                continue
             except:
                 return ["non",0,0]
-   
-        
+            
+        chi_square = []
+        number_of_bins=int(len(timeData)/250)
+        percentile_bins = np.linspace(0,100,number_of_bins) #calculate chi_with 41 bins 
+        percentile_cutoffs = [round(i,7) for i in np.percentile(y_std, percentile_bins)]
+        observed_frequency, bins = np.histogram(y_std, bins=percentile_cutoffs)
+        cum_observed_frequency = np.cumsum(observed_frequency)
         # Get expected counts in percentile bins
         # This is based on a 'cumulative distrubution function' (cdf)
         cdf_fitted = dist.cdf(percentile_cutoffs, *param[:-2], loc=param[-2], 
@@ -70,7 +67,6 @@ def calculateDistributions(timeData):
         cum_expected_frequency = np.cumsum(expected_frequency)
         ss = sum (np.nan_to_num(((cum_expected_frequency - cum_observed_frequency) ** 2) / cum_observed_frequency))
         chi_square.append(ss)
-        #dist_names=[i for i in dist_names if i not in cannotResolve]
     try:   
         results = pd.DataFrame()
         results['Distribution'] = dist_names
@@ -93,7 +89,7 @@ for index,i in enumerate(timeToSeconds):
     except:
         dists.append(k)
         
-temp=[timeToSeconds[3]]
+temp=[timeToSeconds[0]]
 k=None
 for index,i in enumerate(temp):
     k=calculateDistributions(i)
