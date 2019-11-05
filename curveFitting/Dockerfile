@@ -10,7 +10,7 @@ WORKDIR /app
 
 RUN pip3 install -r requirements.txt
 
-COPY CurveFitting.py /app/.
+COPY * /app/
 
 ENTRYPOINT [ "python3" ]
 

@@ -88,7 +88,7 @@ def calculateDistributions(timeData):
             for thread in threads:
                 if thread.isAlive() : 
                     active+=1
-            if active<4:
+            if active<2:
                 break
             else:
                 time.sleep(2)
