@@ -5,7 +5,7 @@ def calculateDiffernce(vector1,vector2):
    rmse=0
    for index in range(len(vector1)):
        rmse+=pow(vector1[index]-vector2[index],2)
-   return math.sqrt(rmse/len(vector1))
+   return round(math.sqrt(rmse/len(vector1)),4)
    
 
 def calculateDistances(dataVector):
@@ -14,8 +14,6 @@ def calculateDistances(dataVector):
     for i in range(len(dataVector)):
         print(i)
         for j in range(len(dataVector)):
-            if j<=i:
-                distances[i].append(0)
-            else:
-                distances[i].append(calculateDiffernce(dataVector[i],dataVector[j]))
+            if j>i:
+                distances[i].append(calculateDiffernce(dataVector[i],dataVector[j]))                
     return distances
