@@ -40,14 +40,14 @@ def calculateR2(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
 
 
 def perDistribution(distribution,y_std,rmse,rmseLocker,r2,r2Locker):
-    print(distribution)
     dist = getattr(scipy.stats, distribution)
     param = dist.fit(y_std)
     try:
         valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(y_std))])
         originalData=np.array([i[0] for i in y_std])
         rmseValue=calculateRMSE(originalData,valuesFromDistribution)
-        r2=calculateR2(originalData,valuesFromDistribution)
+        r2value=calculateR2(originalData,valuesFromDistribution)
+        print(distribution,rmseValue,r2value)
         while rmseLocker.locked():
            continue
         rmseLocker.acquire()
@@ -56,7 +56,7 @@ def perDistribution(distribution,y_std,rmse,rmseLocker,r2,r2Locker):
         while r2Locker.locked():
            continue
         r2Locker.acquire()
-        r2.append(round(r2,5)) 
+        r2.append(round(r2value,5)) 
         r2Locker.release()
     except:
         while rmseLocker.locked():
@@ -117,8 +117,8 @@ def calculateDistributions(timeData):
     except Exception as e:
         print('Failed error with pdDataframe: '+ str(e))
 
-def getDistributionsFitting(datavectors):
-    timeToSeconds=[[k  for i in [x[index] for x in datavectors] for k in i] for index in range(len(datavectors[0]))] #get data per activity
+def getDistributionsFitting(dataVectors):
+    timeToSeconds=[[k  for i in [x[index] for x in dataVectors] for k in i] for index in range(len(dataVectors[0]))] #get data per activity
     dists=[]
     for index,i in enumerate(timeToSeconds):
         print(index)
