@@ -35,26 +35,40 @@ def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
     for index,i in enumerate(originalData):
         sum+=pow(i-valuesFromDistribution[index],2)
     return math.sqrt(sum/len(originalData))
+def calculateR2(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
+    return r2_score(originalData,valuesFromDistribution)
 
 
-def perDistribution(distribution,y_std,rmse,rmseLocker):
+def perDistribution(distribution,y_std,rmse,rmseLocker,r2,r2Locker):
+    print(distribution)
     dist = getattr(scipy.stats, distribution)
     param = dist.fit(y_std)
     try:
         valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(y_std))])
         originalData=np.array([i[0] for i in y_std])
         rmseValue=calculateRMSE(originalData,valuesFromDistribution)
+        r2=calculateR2(originalData,valuesFromDistribution)
         while rmseLocker.locked():
            continue
         rmseLocker.acquire()
-        rmse.append(round(rmseValue,7)) 
+        rmse.append(round(rmseValue,5)) 
         rmseLocker.release()
+        while r2Locker.locked():
+           continue
+        r2Locker.acquire()
+        r2.append(round(r2,5)) 
+        r2Locker.release()
     except:
         while rmseLocker.locked():
            continue
         rmseLocker.acquire()
         rmse.append(np.Inf) 
         rmseLocker.release()
+        while r2Locker.locked():
+           continue
+        r2Locker.acquire()
+        r2.append(0) 
+        r2Locker.release()
     
 
 def calculateDistributions(timeData):
@@ -72,10 +86,12 @@ def calculateDistributions(timeData):
              (k.startswith('rv_') or k.endswith('_gen') or (k == 'levy_stable') or (k=="wrapcauchy")))])
     
     rmseLocker=threading.Lock()
+    r2Locker=threading.Lock()
     rmse=[]
+    r2=[]
     threads=[]
     for index,distribution in enumerate(list(dist_names)):
-        t = threading.Thread(target=perDistribution,args=(distribution,y_std,rmse,rmseLocker))
+        t = threading.Thread(target=perDistribution,args=(distribution,y_std,rmse,rmseLocker,r2,r2Locker))
         threads.append(t)
         t.start()
         while True:
@@ -95,6 +111,7 @@ def calculateDistributions(timeData):
         distributionsDF = pd.DataFrame()
         distributionsDF['Distribution'] = dist_names
         distributionsDF['RMSE'] = rmse
+        distributionsDF["R2"]=r2
         distributionsDF.sort_values(['RMSE'], inplace=True)
         return distributionsDF
     except Exception as e:
@@ -106,7 +123,7 @@ def getDistributionsFitting(datavectors):
     for index,i in enumerate(timeToSeconds):
         print(index)
         distributionsDF=calculateDistributions(i)
-        distributions=[str(distributionsDF.iloc[x]["Distribution"])+"-"+str(distributionsDF.iloc[x]["RMSE"]) for x in range(len(distributionsDF))]
+        distributions=[str(distributionsDF.iloc[x]["Distribution"])+"-"+str(distributionsDF.iloc[x]["RMSE"])+"-"+str(distributionsDF.iloc[x]["R2"]) for x in range(len(distributionsDF))]
         try:           
             dists.append([index,distributions])
         except:
