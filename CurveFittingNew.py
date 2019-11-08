@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import r2_score
 import math 
 import threading
 import time
@@ -12,7 +13,7 @@ from pm4py.algo.filtering.log.attributes import attributes_filter as log_attribu
 def dataPreprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
-    results=[]
+    dataVectors=[]
     for trace in log:
         k=[0 for i in range(len(activities))]
         times=[[] for i in range(len(activities))]
@@ -23,8 +24,8 @@ def dataPreprocess(log):
             times[indexActivity].append(event["time:timestamp"]-previousTime)
             previousTime=event["time:timestamp"]
             timesSeconds=[[i.total_seconds() for i in x] for x in times]
-        results.append(timesSeconds)
-    return results
+        dataVectors.append(timesSeconds)
+    return dataVectors
 
 
 def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
@@ -37,7 +38,6 @@ def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
 
 
 def perDistribution(distribution,y_std,rmse,rmseLocker):
-    print(distribution)
     dist = getattr(scipy.stats, distribution)
     param = dist.fit(y_std)
     try:
@@ -69,7 +69,7 @@ def calculateDistributions(timeData):
     warnings.filterwarnings("ignore")
     dist_names = sorted(
          [k for k in scipy.stats._continuous_distns.__all__ if not (
-             (k.startswith('rv_') or k.endswith('_gen') or (k == 'levy_stable') ))])
+             (k.startswith('rv_') or k.endswith('_gen') or (k == 'levy_stable') or (k=="wrapcauchy")))])
     
     rmseLocker=threading.Lock()
     rmse=[]
@@ -83,7 +83,7 @@ def calculateDistributions(timeData):
             for thread in threads:
                 if thread.isAlive() : 
                     active+=1
-            if active<8:
+            if active<4:
                 break
             else:
                 time.sleep(2)
@@ -92,25 +92,25 @@ def calculateDistributions(timeData):
         
     [thread.join() for thread in threads]
     try:   
-        results = pd.DataFrame()
-        results['Distribution'] = dist_names
-        results['RMSE'] = rmse
-        results.sort_values(['RMSE'], inplace=True)
-        return results
+        distributionsDF = pd.DataFrame()
+        distributionsDF['Distribution'] = dist_names
+        distributionsDF['RMSE'] = rmse
+        distributionsDF.sort_values(['RMSE'], inplace=True)
+        return distributionsDF
     except Exception as e:
         print('Failed error with pdDataframe: '+ str(e))
 
-def getDistributionsFitting(results):
-    timeToSeconds=[[k  for i in [x[index] for x in results] for k in i] for index in range(len(results[0]))] #get data per activity
+def getDistributionsFitting(datavectors):
+    timeToSeconds=[[k  for i in [x[index] for x in datavectors] for k in i] for index in range(len(datavectors[0]))] #get data per activity
     dists=[]
     for index,i in enumerate(timeToSeconds):
         print(index)
-        k=calculateDistributions(i)
-        distributions=[str(k.iloc[x]["Distribution"])+"-"+str(k.iloc[x]["RMSE"]) for x in range(len(k))]
+        distributionsDF=calculateDistributions(i)
+        distributions=[str(distributionsDF.iloc[x]["Distribution"])+"-"+str(distributionsDF.iloc[x]["RMSE"]) for x in range(len(distributionsDF))]
         try:           
             dists.append([index,distributions])
         except:
-            dists.append(k)
+            dists.append(distributionsDF)
     f=open("distributions.txt","w")
     for dist in dists:
         f.write(str(dist[0])+", ")
@@ -121,5 +121,5 @@ def getDistributionsFitting(results):
 
 from pm4py.objects.log.importer.xes import factory as xes_factory
 log=xes_factory.apply("BPI_Challenge_2012.xes")
-results=dataPreprocess(log)
-getDistributionsFitting(results)
+dataVectors=dataPreprocess(log)
+getDistributionsFitting(dataVectors)
