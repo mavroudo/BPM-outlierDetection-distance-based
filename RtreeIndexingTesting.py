@@ -15,7 +15,6 @@ dataVectors,statsTime=dataPreprocess(log)
 min_node_capacity=30
 myTree=MTree(min_node_capacity=min_node_capacity,distance_function=distanceMtree)
 for index,vector in enumerate(dataVectors):
-    print(index,str(vector))
     myTree.add(str(vector))
 
 x=myTree.get_nearest(str(dataVectors[1]),range=5)

@@ -8,16 +8,13 @@ def calculateDiffernce(vector1,vector2):
    return round(math.sqrt(rmse/len(vector1)),4)
 
 
-   
-
-def calculateDistances(dataVector):
+def calculateDistances(dataVectors):
     #find all the distances in the upper corner
-    distances=[[]for i in range(len(dataVector))]
-    for i in range(len(dataVector)):
-        print(i)
-        for j in range(len(dataVector)):
+    distances=[[]for i in range(len(dataVectors))]
+    for i in range(len(dataVectors)):
+        for j in range(len(dataVectors)):
             if j>i:
-                distances[i].append(calculateDiffernce(dataVector[i],dataVector[j]))                
+                distances[i].append(calculateDiffernce(dataVectors[i],dataVectors[j]))                
     return distances
 
 def distanceMtree(v1,v2):

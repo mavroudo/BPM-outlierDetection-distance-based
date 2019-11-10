@@ -16,16 +16,14 @@ def writeToFile(distances, filesName):
                 myfile.write(str(distance)+",")
             myfile.write("\n")
 
-def readFromFile(filesName):
+from random import sample,randint
+def readFromFileSampling(filesName):
     distances=[]
     with open(filesName, "r") as myfile:
         for index,line in enumerate(myfile):
-            distances.append([])
-            for distance in line.split(","):
-                try:
-                    distances[-1].append(float(distance))
-                except:
-                    pass
+            allDists=[float(i) for i in line.split(",")[:-1]]
+            if len(allDists)>1:
+                distances+=sample(allDists,randint(1,len(allDists)))
     return distances
 
 
