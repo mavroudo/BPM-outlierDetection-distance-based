@@ -6,21 +6,21 @@ from pm4py.algo.filtering.log.attributes import attributes_filter as log_attribu
 def dataPreprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
-    results=[]
+    dataVectors=[]
     times=[[] for i in range(len(activities))]
     for trace in log:
-        k=[0 for i in range(len(activities))]
+        activitiesCounter=[0 for i in range(len(activities))]
         timesSpend=[datetime.timedelta(0) for i in range(len(activities))]
         previousTime=trace.attributes["REG_DATE"]
         for index,event in enumerate(trace):
             indexActivity=activities.index(event["concept:name"])
-            k[indexActivity]+=1
+            activitiesCounter[indexActivity]+=1
             timesSpend[indexActivity]+=event["time:timestamp"]-previousTime
             times[indexActivity].append(event["time:timestamp"]-previousTime)
             previousTime=event["time:timestamp"]
-        timesSpend=[(timesSpend[i]/k[i]).total_seconds() if k[i]!=0 else 0 for i in range(len(activities))] #contains the mo of all the activities
-        results.append(k+timesSpend) 
-    return results,times
+        timesSpend=[(timesSpend[i]/activitiesCounter[i]).total_seconds() if activitiesCounter[i]!=0 else 0 for i in range(len(activities))] #contains the mo of all the activities
+        dataVectors.append(activitiesCounter+timesSpend) 
+    return dataVectors,times
 
 from sklearn.preprocessing import StandardScaler
 import numpy as np
