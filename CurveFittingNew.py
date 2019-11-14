@@ -35,6 +35,7 @@ def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
     for index,i in enumerate(originalData):
         sum+=pow(i-valuesFromDistribution[index],2)
     return math.sqrt(sum/len(originalData))
+
 def calculateR2(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
     return r2_score(originalData,valuesFromDistribution)
 
@@ -77,8 +78,7 @@ def calculateDistributions(timeData):
     yy = y.reshape (-1,1)
     sc.fit(yy)
     y_std =sc.transform(yy)
-    del yy  
-    
+    del yy    
     import warnings #mute the warning from the getattr
     warnings.filterwarnings("ignore")
     dist_names = sorted(
@@ -99,12 +99,10 @@ def calculateDistributions(timeData):
             for thread in threads:
                 if thread.isAlive() : 
                     active+=1
-            if active<4:
+            if active<8:
                 break
             else:
                 time.sleep(2)
-            
-            
         
     [thread.join() for thread in threads]
     try:   
@@ -140,3 +138,39 @@ from pm4py.objects.log.importer.xes import factory as xes_factory
 log=xes_factory.apply("BPI_Challenge_2012.xes")
 dataVectors=dataPreprocess(log)
 getDistributionsFitting(dataVectors)
+
+import pandas as pd
+dists=[]
+with open("distributions.txt","r") as f:
+    for line in f:
+       dists.append(line.split(", ")[1:-1])
+       
+distributions=[[i.split("-") for i in d ] for d in dists]
+distributions=[]
+for index,d in enumerate(dists):
+    distributions.append([])
+    for i in d:
+        k=i.split("-")
+        if len(k)==4:
+            k.remove("")
+            k[2]="-"+k[2]
+        distributions[index].append(k)
+
+
+p=[[[i[0],float(i[1]),float(i[2])]for i in dist]for dist in distributions]
+pSorted=[[sorted(i,key=lambda x:x[2],reverse=True)] for i in p]
+oneDist=[i[0][0] for i in pSorted]
+
+from pm4py.objects.log.importer.xes import factory as xes_factory
+print("Loading data..")
+log=xes_factory.apply("BPI_Challenge_2012.xes")
+from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
+activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
+activities=list(activities_all.keys())
+
+distributionsDF = pd.DataFrame()
+distributionsDF["Activity_Name"]=activities
+distributionsDF['Distribution'] = [i[0] for i in oneDist]
+distributionsDF['RMSE'] = [i[1] for i in oneDist]
+distributionsDF["R2"]=[i[2] for i in oneDist]
+

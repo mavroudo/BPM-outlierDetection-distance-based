@@ -8,20 +8,29 @@ Created on Sun Nov 10 11:45:17 2019
 import threading
 from mtree import MTree
 import time
-def outliersKNN(preparedQueries:list,mtree:MTree,R,K,outliersPerKR,outliersLock):
-    print(K,R)
+def outliersKNN2(queries:list,R,K):
     outliers=[]
-    for index,i in enumerate(preparedQueries):
+    for index,i in enumerate(queries):
         try:
             if i[K+1]>R:
                 outliers.append(index)
         except IndexError:
             outliers.append(index)
-    while outliersLock.locked():
-        continue
-    outliersLock.acquire()
-    outliersPerKR.append([K,R,len(outliers)]) 
-    outliersLock.release()
+    return outliers
+    
+    #while outliersLock.locked():
+    #    continue
+    #outliersLock.acquire()
+    #outliersPerKR.append([K,R,len(outliers)]) 
+    #outliersLock.release()
+    
+    
+def outliersKNN(queries:list,K):
+    outliers=[]
+    for index,i in enumerate(queries):
+        if len(i)<K+1:
+            outliers.append(index)
+    return outliers
     
 def testKNNparameters(R,K,dataVectors,mtree:MTree,preparedQueries=None):
     threads=[]
@@ -48,12 +57,13 @@ def testKNNparameters(R,K,dataVectors,mtree:MTree,preparedQueries=None):
     [thread.join() for thread in threads]
     return outliersPerKR,preparedQueries
 
-def calculateQueries(mtree:MTree, dataVectors:list,maxK,maxR):
-    preparedQueries=[]
+def calculateQueries(mtree:MTree, dataVectors:list,K,R):
+    queries=[]
     for index,dataVector in enumerate(dataVectors): 
         print(index)
-        x=list(mtree.get_nearest(str(dataVector),range=maxR,limit=maxK))
+        x=list(mtree.get_nearest(str(dataVector),range=R,limit=K))
         m=[i[1] for i in x]
-        preparedQueries.append(m)
+        queries.append(m)
+    return queries
 
     
