@@ -36,9 +36,6 @@ def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
         sum+=pow(i-valuesFromDistribution[index],2)
     return math.sqrt(sum/len(originalData))
 
-def calculateR2(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
-    return r2_score(originalData,valuesFromDistribution)
-
 
 def perDistribution(distribution,y_std,rmse,rmseLocker,r2,r2Locker):
     dist = getattr(scipy.stats, distribution)
@@ -47,7 +44,7 @@ def perDistribution(distribution,y_std,rmse,rmseLocker,r2,r2Locker):
         valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(y_std))])
         originalData=np.array([i[0] for i in y_std])
         rmseValue=calculateRMSE(originalData,valuesFromDistribution)
-        r2value=calculateR2(originalData,valuesFromDistribution)
+        r2value=r2_score(originalData,valuesFromDistribution)
         print(distribution,rmseValue,r2value)
         while rmseLocker.locked():
            continue
@@ -110,12 +107,12 @@ def calculateDistributions(timeData):
         distributionsDF['Distribution'] = dist_names
         distributionsDF['RMSE'] = rmse
         distributionsDF["R2"]=r2
-        distributionsDF.sort_values(['RMSE'], inplace=True)
+        distributionsDF.sort_values(['R2'], inplace=True)
         return distributionsDF
     except Exception as e:
         print('Failed error with pdDataframe: '+ str(e))
 
-def getDistributionsFitting(dataVectors):
+def getDistributionsFitting(dataVectors,log):
     timeToSeconds=[[k  for i in [x[index] for x in dataVectors] for k in i] for index in range(len(dataVectors[0]))] #get data per activity
     dists=[]
     for index,i in enumerate(timeToSeconds):
@@ -133,12 +130,28 @@ def getDistributionsFitting(dataVectors):
             f.write(distribution+", ")
         f.write("\n")
     f.close()
+    allDistributions=[[[i[0],float(i[1]),float(i[2])]for i in distributions[1]]for distributions in dists]
+    allDistributionsSorted=[[sorted(i,key=lambda x:x[2],reverse=True)] for i in allDistributions]
+    oneDist=[i[0][0] for i in allDistributionsSorted]
+    distributionsDF = pd.DataFrame()
+    
+    activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
+    activities=list(activities_all.keys())
+    distributionsDF["Activity_Name"]=activities
+    distributionsDF['Distribution'] = [i[0] for i in oneDist]
+    distributionsDF['RMSE'] = [i[1] for i in oneDist]
+    distributionsDF["R2"]=[i[2] for i in oneDist]
+    return distributionsDF
+    
+    
+    
+    
 
-from pm4py.objects.log.importer.xes import factory as xes_factory
-log=xes_factory.apply("BPI_Challenge_2012.xes")
-dataVectors=dataPreprocess(log)
-getDistributionsFitting(dataVectors)
-
+#from pm4py.objects.log.importer.xes import factory as xes_factory
+#log=xes_factory.apply("BPI_Challenge_2012.xes")
+#dataVectors=dataPreprocess(log)
+#getDistributionsFitting(dataVectors)
+"""
 import pandas as pd
 dists=[]
 with open("distributions.txt","r") as f:
@@ -160,17 +173,19 @@ for index,d in enumerate(dists):
 p=[[[i[0],float(i[1]),float(i[2])]for i in dist]for dist in distributions]
 pSorted=[[sorted(i,key=lambda x:x[2],reverse=True)] for i in p]
 oneDist=[i[0][0] for i in pSorted]
-
-from pm4py.objects.log.importer.xes import factory as xes_factory
-print("Loading data..")
-log=xes_factory.apply("BPI_Challenge_2012.xes")
-from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
+distributionsDF = pd.DataFrame()  
 activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
 activities=list(activities_all.keys())
-
-distributionsDF = pd.DataFrame()
 distributionsDF["Activity_Name"]=activities
 distributionsDF['Distribution'] = [i[0] for i in oneDist]
 distributionsDF['RMSE'] = [i[1] for i in oneDist]
 distributionsDF["R2"]=[i[2] for i in oneDist]
+
+from pm4py.objects.log.importer.xes import factory as xes_factory
+print("Loading data..")
+log=xes_factory.apply("BPI_Challenge_2012.xes")
+"""
+
+
+
 
