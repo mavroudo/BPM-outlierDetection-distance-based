@@ -77,40 +77,45 @@ def outlierDetectionWithDistribution(log,dataVectors,threshold):
     warnings.filterwarnings("ignore")
     distributions=[]
     for index in range(len(distributionsDF)):
-        if i[0]!="non":
+        if distributionsDF.iloc[index]["R2"]>=0.94:
             dist = getattr(scipy.stats, distributionsDF.iloc[index]["Distribution"])
             param = dist.fit(standarized[index])
-            distributions.append([dist,param])
+            distribution=dist(*param[:-2], loc=param[-2],scale=param[-1])
+            distributions.append([distribution])
         else: 
-            distributions.append([])
-        
+            size=len(timeToSeconds[index])
+            down=int(size*threshold)
+            up=int(size-size*threshold)
+            distributions.append([sorted(standarized[index])[down],sorted(standarized[index])[up]])
+    print(distributions)    
     #perform outlier detection trace by trace
     outliers=[]
     for index,dataVector in enumerate(dataVectors):
-        #print(index)
-        for innerIndex,activity in enumerate(dataVector): # looping through the time events
-            dist,param=distributions[innerIndex]
-            if len(activity)>0:
-                mo=sum(activity)/len(activity)  
+        print(index)
+        for innerIndex,activity in enumerate(dataVector): # looping through the time events           
+            if len(distributions[innerIndex])==1:
+                dist=distributions[innerIndex][0]                             
+                flag=False
+                for event in activity:
+                    x=standarScalers[innerIndex].transform(np.array(event).reshape(1,-1))
+                    predict=float(dist.pdf(x))
+                    if predict<threshold:
+                        outliers.append([index,innerIndex])
+                        flag=True
+                        break
+                if flag:
+                    break
             else:
-                continue
-            x=standarScalers[innerIndex].transform(np.array(mo).reshape(1,-1))            
-            predict=float(dist.pdf(x,*param[:-2], loc=param[-2],scale=param[-1]))
-            if predict<threshold:
-                if innerIndex==13:
-                    print(predict,x)
-                outliers.append([index,innerIndex])
-                break
-            #flag=False
-            #for event in activity:
-            #    x=standarScalers[innerIndex].transform(np.array(event).reshape(1,-1))
-            #    predict=float(dist.pdf(x,*param[:-2], loc=param[-2],scale=param[-1]))
-            #    if predict<threshold:
-            #        outliers.append([index,innerIndex])
-            #        flag=True
-            #        break
-            #if flag:
-            #    break           
+                minValue,maxValue=distributions[innerIndex] #use min and max from given data
+                flag=False
+                for event in activity:
+                    x=standarScalers[innerIndex].transform(np.array(event).reshape(1,-1))
+                    if x<minValue or x>maxValue:
+                        outliers.append([index,innerIndex])
+                        flag=True
+                        break
+                if flag:
+                    break
     return outliers
 
 
@@ -121,7 +126,7 @@ from pm4py.objects.log.importer.xes import factory as xes_factory
 from CurveFittingNew import dataPreprocess
 log=xes_factory.apply("BPI_Challenge_2012.xes")
 dataVectors=dataPreprocess(log)
-outliers=outlierDetectionWithDistribution(log,dataVectors,0.01)
+outliers=outlierDetectionWithDistribution(log,dataVectors,0.001)
 
 #this working except from 0 position
 possitions=[i[1] for i in outliers]
