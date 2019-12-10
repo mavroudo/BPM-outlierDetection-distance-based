@@ -22,6 +22,27 @@ def dataPreprocess(log):
         dataVectors.append(activitiesCounter+timesSpend) 
     return dataVectors,times
 
+
+def dataPreprocessPerActivity(log):
+    activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
+    activities=list(activities_all.keys())
+    dataVectors=[]
+    for traceIndex,trace in enumerate(log):
+        k=[0 for i in range(len(activities))]
+        times=[[] for i in range(len(activities))]
+        previousTime=trace.attributes["REG_DATE"]
+        for index,event in enumerate(trace):
+            indexActivity=activities.index(event["concept:name"])
+            k[indexActivity]+=1
+            times[indexActivity].append([traceIndex,event["time:timestamp"]-previousTime])
+            previousTime=event["time:timestamp"]
+            timesSeconds=[[[i[0],i[1].total_seconds()] for i in x] for x in times]
+        dataVectors.append(timesSeconds)
+    #Transpose dataVectors
+    transposedDataVectors=[[dataVector[index] for dataVector in dataVectors if dataVector[index] != []]for index in range(len(dataVectors[0]))]
+    return [[event for trace in dataVector for event in trace] for dataVector in transposedDataVectors]
+
+
 from sklearn.preprocessing import StandardScaler
 import numpy as np
 def transform(dataVectors):

@@ -5,7 +5,6 @@
 #import 
 
 from DataPreprocess import dataPreprocess, transform
-from distanceEvaluation import writeToFile,plotDistanceDistribution
 from Distance import distanceMtree
 from mtree import MTree
 
@@ -13,11 +12,12 @@ from mtree import MTree
 from pm4py.objects.log.importer.xes import factory as xes_factory
 print("Loading data..")
 log=xes_factory.apply("BPI_Challenge_2012.xes")
+
 print("Preprocess Data..")
 dataVectors,statsTimes=dataPreprocess(log)
 dataVectorsStandarized=transform(dataVectors)
-print("Creating Mtree...")
 
+print("Creating Mtree...")
 myTree=MTree(distance_function=distanceMtree,min_node_capacity=50)
 for index,vector in enumerate(dataVectorsStandarized):
     print(index)
@@ -26,9 +26,8 @@ for index,vector in enumerate(dataVectorsStandarized):
     except:
         pass
 
-
 print("Testing distance parameters")
-from outlierKNN import testKNNparameters,calculateQueries
+from outlierKNN import calculateQueries
 preparedQueries=calculateQueries(myTree,dataVectorsStandarized,500,3)
 #write distance from neighrest neighbors so we will not need to calculate them again
 with open("neirestNeighbors.txt","w") as f:
@@ -36,8 +35,7 @@ with open("neirestNeighbors.txt","w") as f:
         for neighbor in neighbors:
             f.write(str(neighbor)+" ")
         f.write("\n")
-        
-        
+               
 #run with the RK after the calculation 
 preparedQueries=[]
 with open("neirestNeighbors.txt","r") as f:
@@ -49,13 +47,23 @@ from outlierKNN import outliersKNN2
 outliers=outliersKNN2(preparedQueries,50,50)
 
 
+"""
+Calcullate outliers in activity based on distance. We will extract all the 
+events per activity, then we will calculate the k and r and then to make queries
+"""
+from DataPreprocess import dataPreprocessPerActivity
+from pm4py.objects.log.importer.xes import factory as xes_factory
+
+print("Loading data..")
+log=xes_factory.apply("BPI_Challenge_2012.xes")
+print("Preprocess data for Activity outliers")
+dataVectors=dataPreprocessPerActivity(log)
+print("Outliers activities based on distance")
+from Distance import neighborsScore
+k=neighborsScore(dataVectors[17],3)
 
 
 
-distances=calculateDistances(dataVectorsStandarized)
-writeToFile(distances,"distances.txt")
-plotDistanceDistribution(distances,"Distances")
-outliersPerParameter=[i for i in testKNNparameters(R,K,distances)]
 
 
 

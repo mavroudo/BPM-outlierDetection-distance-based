@@ -24,3 +24,35 @@ def distanceMtree(v1,v2):
     for index in range(len(v1List)):
        rmse+=pow(v1List[index]-v2List[index],2)
     return round(math.sqrt(rmse/len(v2List)),4)
+
+"""
+These 3 functions used for outliers activities 
+"""
+from heapq import nsmallest
+def neighrestNeighbors(activityVector,element,k):
+    return nsmallest(k, activityVector, key=lambda x: abs(x[1]-element[1]))
+
+def neighborsScore(activityVector,k):
+    score=[]
+    for event in activityVector:
+        neighbors=neighrestNeighbors(activityVector,event,k)
+        score.append([event,sum([abs(neighbor[1]-event[1]) for neighbor in neighbors])])
+    return sorted(score,key=lambda x: x[1],reverse=True)
+
+def calculatePairwise(activityVector):
+    sum=0
+    for event in activityVector:
+        for event2 in activityVector:
+            sum+=event[1]*event2[1]
+    return (sum/2)/len(activityVector)
+
+def outlierActivities(activityVector,k,threshold):
+    scores=neighborsScore(activityVector,k)
+    expected=calculatePairwise(activityVector)
+    outliers=[]
+    for score in scores:
+        if score[1]>threshold:
+            outliers.append(score[0])
+        else:
+            break
+    return outliers
