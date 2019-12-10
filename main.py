@@ -44,8 +44,10 @@ with open("neirestNeighbors.txt","r") as f:
         preparedQueries.append([float(i) for i in line.split(" ")[:-1]])
         
 from outlierKNN import outliersKNN2
-outliers=outliersKNN2(preparedQueries,50,50)
+outliersDistance=outliersKNN2(preparedQueries,50,50)
 
+outliersDist=[i[0] for i in outliers]
+equaloutliers=[i for i in outliersDist if i in outliersDistance]
 
 """
 Calcullate outliers in activity based on distance. We will extract all the 
