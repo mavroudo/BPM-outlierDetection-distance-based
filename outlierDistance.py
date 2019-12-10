@@ -122,7 +122,7 @@ def outliers(logName,k,r,mtree,dataVectors):
         if filename.startswith(nameFile):
             name=filename.split(".")[0]
             K,R=map(int,name.split("-")[1:])
-            if k<=K and r<=R:
+            if k<=K:
                 fileFound=filename
                 break
     preparedQueries=[]
