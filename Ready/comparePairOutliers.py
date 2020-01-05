@@ -31,4 +31,3 @@ with open("tests.txt","w") as f:
                 if not flag:
                     miss.append(do)
             f.write(str(neighbors)+" "+str(threshold)+" "+str(len(hits))+" "+str(len(miss))+"\n")
-return 0
