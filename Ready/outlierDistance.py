@@ -34,7 +34,7 @@ def dataPreprocess(log):
             previousTime=event["time:timestamp"]
         timesSpend=[(timesSpend[i]/activitiesCounter[i]).total_seconds() if activitiesCounter[i]!=0 else 0 for i in range(len(activities))] #contains the mo of all the activities
         dataVectors.append(activitiesCounter+timesSpend) 
-    return dataVectors,times
+    return dataVectors,times,activities
 
 
 def transform(dataVectors):
@@ -119,7 +119,7 @@ def outliers(logName,k,r,mtree,dataVectors):
     nameFile=logName.split(".")[0]
     fileFound=None
     for filename in os.listdir('.'):
-        if filename.startswith(nameFile):
+        if filename.startswith(nameFile) and len(filename.split("."))==2 and filename.split(".")[1]=="txt":
             name=filename.split(".")[0]
             K,R=map(int,name.split("-")[1:])
             if k<=K and r<=R:
@@ -147,6 +147,7 @@ def createMTree(dataVectorsStandarized):
             pass
     return myTree
 
+#Can use arguments from command line
 logFile="BPI_Challenge_2012.xes"
 k=500
 r=3
@@ -155,7 +156,7 @@ print("Loading data..")
 log=xes_factory.apply(logFile)
 
 print("Preprocess Data..")
-dataVectors,statsTimes=dataPreprocess(log)
+dataVectors,statsTimes,activities=dataPreprocess(log)
 dataVectorsStandarized=transform(dataVectors)
 
 print("Creating Mtree...")

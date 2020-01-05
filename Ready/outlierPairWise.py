@@ -11,6 +11,7 @@ import numpy as np
 from rtree.index import Rtree
 import math
 from pm4py.objects.log.importer.xes import factory as xes_factory
+
 def preprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
@@ -92,7 +93,7 @@ def readFromFile():
             yield data[index] 
 
 print("Loading data..")
-log=xes_factory.apply("BPI_Challenge_2012.xes")
+log=xes_factory.apply("../BPI_Challenge_2012.xes")
 print("Preprocess")
 #[traceIndex,activityA,activityB,standarizedTimeA,standarizedTimeB]
 pairWiseData=preprocess(log)
@@ -102,6 +103,8 @@ tree=createRtree(pairWiseData) #returns values orderd
 #This code will take the first 10.000 neighbors of each and print them to a file
 print("Writing to file")
 writeTOPKNeighborsToFile(tree,pairWiseData,10000)
+
+#calculate the n most outliying pairs and then from prosimo des poia einai ontws outliers
 
 #print("Calculate the outlierScore")
 #scores=outlierScore(50,tree,pairWiseData)

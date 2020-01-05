@@ -90,32 +90,21 @@ def outlierDetectionWithDistribution(log,dataVectors,threshold):
     print(distributions)    
     #perform outlier detection trace by trace
     outliers=[]
-    for index,dataVector in enumerate(dataVectors):
-        print(index)
-        for innerIndex,activity in enumerate(dataVector): # looping through the time events           
-            if len(distributions[innerIndex])==1:
-                dist=distributions[innerIndex][0]                             
-                flag=False
-                for event in activity:
-                    x=standarScalers[innerIndex].transform(np.array(event).reshape(1,-1))
+    for traceIndex,dataVector in enumerate(dataVectors):
+        for activityIndex,activity in enumerate(dataVector): # looping through the time events           
+            if len(distributions[activityIndex])==1: #fit distribution
+                dist=distributions[activityIndex][0]                             
+                for eventIndex,event in enumerate(activity):
+                    x=standarScalers[activityIndex].transform(np.array(event).reshape(1,-1))
                     predict=float(dist.pdf(x))
                     if predict<threshold:
-                        outliers.append([index,innerIndex])
-                        flag=True
-                        break
-                if flag:
-                    break
+                        outliers.append([traceIndex,activityIndex,eventIndex,x])
             else:
-                minValue,maxValue=distributions[innerIndex] #use min and max from given data
-                flag=False
-                for event in activity:
-                    x=standarScalers[innerIndex].transform(np.array(event).reshape(1,-1))
+                minValue,maxValue=distributions[activityIndex] #use min and max from given data
+                for eventIndex,event in enumerate(activity):
+                    x=standarScalers[activityIndex].transform(np.array(event).reshape(1,-1))
                     if x<minValue or x>maxValue:
-                        outliers.append([index,innerIndex])
-                        flag=True
-                        break
-                if flag:
-                    break
+                        outliers.append([traceIndex,activityIndex,eventIndex,x])
     return outliers
 
 
