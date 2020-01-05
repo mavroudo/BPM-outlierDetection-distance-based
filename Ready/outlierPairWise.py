@@ -11,6 +11,7 @@ import numpy as np
 from rtree.index import Rtree
 import math
 from pm4py.objects.log.importer.xes import factory as xes_factory
+import utils
 
 def preprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
@@ -47,7 +48,7 @@ def preprocess(log):
             eventNext=sequentialData[traceIndex][eventIndex+1]
             timeA=standarScalers[event[0]].transform(np.array(event[1]).reshape(1,-1))
             timeB=standarScalers[eventNext[0]].transform(np.array(eventNext[1]).reshape(1,-1))
-            data.append([traceIndex,event[0],eventNext[0],round(float(timeA),5),round(float(timeB),5)])
+            data.append([traceIndex,event[0],eventNext[0],round(float(timeA),5),round(float(timeB),5),eventIndex])
     return data
 
 
@@ -65,9 +66,9 @@ def distance2Pairs(pair1,pair2):
 def outlierScore(k,tree,data):
     scores=[]
     for index,pair in enumerate(data):
-        print(index)
+        utils.progress(index,len(data),status="Calculate the outlierScore")
         neirestNeighbors=tree.nearest((pair[3],pair[4]),num_results=k+1)
-        #tree returns indexes +1, + the value of the element itself
+        #tree returns indexes +1, + the value sof the element itself
         distances=[distance2Pairs(pair,data[x-1]) for x in neirestNeighbors]
         scores.append([index,sum(sorted(distances[:k+1]))])
     return sorted(scores,key=lambda x:x[1],reverse=True)
@@ -84,29 +85,27 @@ def writeTOPKNeighborsToFile(tree,data,k):
     
 def readFromFile():
     with open("pairsNeighbors.txt","r") as f:
-        data=[]
         for index,line in enumerate(f):
             line=line.split(":")
-            data.append([])
+            data=[]
             for neighbor in line[1].split(",")[:-1]:
-                data[index].append(int(neighbor))
-            yield data[index] 
+                data.append(int(neighbor))
+            yield data
 
-print("Loading data..")
-log=xes_factory.apply("../BPI_Challenge_2012.xes")
-print("Preprocess")
-#[traceIndex,activityA,activityB,standarizedTimeA,standarizedTimeB]
-pairWiseData=preprocess(log)
-print("Create R tree")
-tree=createRtree(pairWiseData) #returns values orderd
-
-#This code will take the first 10.000 neighbors of each and print them to a file
-print("Writing to file")
-writeTOPKNeighborsToFile(tree,pairWiseData,10000)
-
-#calculate the n most outliying pairs and then from prosimo des poia einai ontws outliers
-
-#print("Calculate the outlierScore")
-#scores=outlierScore(50,tree,pairWiseData)
+def main(logFile,neighbors,number):
+    logFile="../BPI_Challenge_2012.xes"
+    print("Loading data..")
+    log=xes_factory.apply(logFile)
+    print("Preprocessing")
+    pairWiseData=preprocess(log)
+    print("Create R tree")
+    tree=createRtree(pairWiseData) #returns values orderd 
+    scores=outlierScore(neighbors,tree,pairWiseData)
+    print("Creating pairs")
+    outliers=[]
+    for s in scores:
+        pairData=pairWiseData[s[0]]
+        outliers.append(pairData+[s[1]])
+    return outliers[:number]
 
 

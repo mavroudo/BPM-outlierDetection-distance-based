@@ -18,24 +18,29 @@ import time
 import pandas as pd
 import os
 import warnings
+from statistics import mean
 
 
 def dataPreprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
     dataVectors=[]
+    theIndex=[]
     for trace in log:
         k=[0 for i in range(len(activities))]
         times=[[] for i in range(len(activities))]
         previousTime=trace.attributes["REG_DATE"]
+        aIndex=[]
         for index,event in enumerate(trace):
             indexActivity=activities.index(event["concept:name"])
             k[indexActivity]+=1
             times[indexActivity].append(event["time:timestamp"]-previousTime)
+            aIndex.append([index,indexActivity,len(times[indexActivity])])
             previousTime=event["time:timestamp"]
-            timesSeconds=[[i.total_seconds() for i in x] for x in times]
+        timesSeconds=[[i.total_seconds() for i in x] for x in times]
         dataVectors.append(timesSeconds)
-    return dataVectors
+        theIndex.append(aIndex)
+    return dataVectors,theIndex
 
 def readFromFile(log):
     dists=[]
@@ -233,21 +238,69 @@ def outlierDetectionWithDistribution(log,dataVectors,threshold):
                     x=standarScalers[activityIndex].transform(np.array(event).reshape(1,-1))
                     if x<minValue or x>maxValue:
                         outliers.append([traceIndex,activityIndex,eventIndex,event,float(x)])
-    return outliers,distributions,standarized
+    means=[mean(i) for i in timeToSeconds]
+    return outliers,distributions,means
+
+
+def createPairsFromOutliers(outliers,index,dataVectors,means):
+    #get the indexes in their seq
+    indexOfOutliers=[]
+    for outlier in outliers:
+        indexInTrace=int([index for index,event in enumerate(index[outlier[0]]) if event[1]==outlier[1] and event[2]==outlier[2]+1][0])
+        indexOfOutliers.append([outlier[0],outlier[1],indexInTrace,dataVectors[outlier[0]][outlier[1]][outlier[2]]])
+    #create the outlier pairs
+    outlierPairs=[]
+    outlierId=0
+    while outlierId<len(indexOfOutliers):
+        outlier=indexOfOutliers[outlierId]
+        if outlier[2]>0: # it has a previous            
+            thisIndex=index[outlier[0]][outlier[2]-1]
+            timeA=dataVectors[outlier[0]][thisIndex[1]][thisIndex[2]-1]   
+            timeB=outlier[3]
+            if timeB>means[outlier[1]]:
+                outlierPairs.append([outlier[0],thisIndex[1],outlier[1],timeA,timeB,"ok","over",outlier[2]-1])
+            else:
+                outlierPairs.append([outlier[0],thisIndex[1],outlier[1],timeA,timeB,"ok","under",outlier[2]-1])
+        
+        #that is for the next one
+        try:
+            outlierNext=indexOfOutliers[outlierId+1]
+            if outlier[0]==outlierNext[0] and outlier[2]==outlierNext[2]-1: #both activities one next to another are outliers
+                a1="under"
+                a2="under"
+                if outlier[3]>means[outlier[1]]:
+                    a1="over"
+                if outlierNext[3]>means[outlierNext[1]]:
+                    a2="over"           
+                outlierPairs.append([outlier[0],outlier[1],outlierNext[1],outlier[3],outlierNext[3],a1,a2,outlier[2]])
+                outlierId+=2
+            else:
+                try:
+                    nextActivity=index[outlier[0]][outlier[2]+1]
+                    timeA=outlier[3]
+                    timeB=dataVectors[outlier[0]][nextActivity[1]][nextActivity[2]-1]
+                    a1="under"
+                    if outlier[3]>means[outlier[1]]:
+                        a1="over"
+                    outlierPairs.append([outlier[0],outlier[1],nextActivity[1],timeA,timeB,a1,"ok",outlier[2]])
+                    outlierId+=1
+                except: #there is no next activity
+                    outlierId+=1 
+        except IndexError:
+            outlierId+=1
+    return outlierPairs
 
 
 
 
-logFile="../BPI_Challenge_2012.xes"
+def main(logFile,threshold):
+    print("Loading data..")
+    log=xes_factory.apply(logFile)
+    print("Preprocessing")
+    dataVectors,index=dataPreprocess(log)
+    print("Detecting outliers")
+    outliers,distributions,means=outlierDetectionWithDistribution(log,dataVectors,threshold)
+    print("Creating pairs")
+    outlierPairs=createPairsFromOutliers(outliers,index,dataVectors,means)
+    return outlierPairs
 
-print("Loading log File")
-log=xes_factory.apply(logFile)
-print("Preprocessing")
-dataVectors=dataPreprocess(log)
-print("Detecting outliers")
-outliers,distributions,standarized=outlierDetectionWithDistribution(log,dataVectors,0.01)
-
-possitions=[i[1] for i in outliers]
-from collections import Counter
-Counter(possitions).keys()
-Counter(possitions).values()
