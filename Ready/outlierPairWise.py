@@ -110,7 +110,7 @@ def main(logFile,neighbors,number):
     for s in scores:
         pairData=pairWiseData[s[0]]
         outliers.append(pairData+[s[1]])
-    return outliers[:number],timeTreeEnd-timeTreeStart,scoreTimeEnd-scoreTimeEnd
+    return outliers[:number],timeTreeEnd-timeTreeStart,timeTreeEnd-scoreTimeEnd
 
 #import pandas as pd
 #df=pd.DataFrame(pairWiseData,columns=["trace","activityA","ActivityB","x","y","eventId"])
