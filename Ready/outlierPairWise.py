@@ -12,6 +12,7 @@ from rtree.index import Rtree
 import math
 from pm4py.objects.log.importer.xes import factory as xes_factory
 import utils
+import time
 
 def preprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
@@ -99,13 +100,21 @@ def main(logFile,neighbors,number):
     print("Preprocessing")
     pairWiseData=preprocess(log)
     print("Create R tree")
+    timeTreeStart=time.time()
     tree=createRtree(pairWiseData) #returns values orderd 
+    timeTreeEnd=time.time()
     scores=outlierScore(neighbors,tree,pairWiseData)
+    scoreTimeEnd=time.time()
     print("Creating pairs")
     outliers=[]
     for s in scores:
         pairData=pairWiseData[s[0]]
         outliers.append(pairData+[s[1]])
-    return outliers[:number]
+    return outliers[:number],timeTreeEnd-timeTreeStart,scoreTimeEnd-scoreTimeEnd
 
-
+#import pandas as pd
+#df=pd.DataFrame(pairWiseData,columns=["trace","activityA","ActivityB","x","y","eventId"])
+#dfSampled=df.sample(100)
+#import matplotlib.pyplot as plt
+#dfSampled.plot(x="x",y="y",kind="scatter")
+#plt.savefig("sampled100.png")

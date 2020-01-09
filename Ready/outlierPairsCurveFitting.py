@@ -291,16 +291,16 @@ def createPairsFromOutliers(outliers,index,dataVectors,means):
     return outlierPairs
 
 
-
-
 def main(logFile,threshold):
     print("Loading data..")
     log=xes_factory.apply(logFile)
     print("Preprocessing")
     dataVectors,index=dataPreprocess(log)
     print("Detecting outliers")
+    timeStart=time.time()
     outliers,distributions,means=outlierDetectionWithDistribution(log,dataVectors,threshold)
+    timeEnd=time.time()
     print("Creating pairs")
     outlierPairs=createPairsFromOutliers(outliers,index,dataVectors,means)
-    return outlierPairs
+    return outlierPairs,timeEnd-timeStart
 
