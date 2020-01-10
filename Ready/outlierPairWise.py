@@ -13,6 +13,8 @@ import math
 from pm4py.objects.log.importer.xes import factory as xes_factory
 import utils
 import time
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def preprocess(log):
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
@@ -92,6 +94,45 @@ def readFromFile():
             for neighbor in line[1].split(",")[:-1]:
                 data.append(int(neighbor))
             yield data
+            
+def testRTree(pairWiseData):
+    data=[20000,50000,100000,150000,200000,249113]
+    times=[0,0,0,0,0,0]
+    for index,n in enumerate(data):
+        print(index)
+        for _ in range(5):
+            timeTreeStart=time.time()
+            createRtree(pairWiseData[:n]) #returns values orderd 
+            timeTreeEnd=time.time()
+            times[index]+=timeTreeEnd-timeTreeStart
+        times[index]=times[index]/5
+    rtreeTimes=pd.DataFrame([[data[i],times[i]] for i in range(len(data))],columns=["data inserted","time"] )
+    rtreeTimes.plot(kind="scatter",x="data inserted",y="time",title="Time to create R-Tree based on inserted data")
+    plt.savefig("rtreeTimes.png")
+
+import random    
+def testQueriesInTree(pairWiseData,tree):
+    neighbors=[100,500,1000,3000,5000,10000,30000,50000]
+    times=[0 for _ in range(len(neighbors))]
+    queries=1000
+    for index,k in enumerate(neighbors):
+        print(k)
+        for _ in range(queries):           
+            data=random.choice(pairWiseData)
+            timeQStart=time.time()
+            tree.nearest((data[3],data[4]),num_results=k+1)
+            timeQEnd=time.time()
+            times[index]+=timeQEnd-timeQStart
+        times[index]/=queries
+    df=pd.DataFrame([[neighbors[i],times[i]]for i in range(len(times))],columns=["Neighbors","Time"])
+    df.plot(kind="scatter",x="Neighbors",y="Time",title="Query time in R-Tree based on K")
+    plt.savefig("queriesTime.png")
+            
+        
+
+    
+    
+            
 
 def main(logFile,neighbors,number):
     logFile="../BPI_Challenge_2012.xes"
@@ -110,7 +151,11 @@ def main(logFile,neighbors,number):
     for s in scores:
         pairData=pairWiseData[s[0]]
         outliers.append(pairData+[s[1]])
-    return outliers[:number],timeTreeEnd-timeTreeStart,timeTreeEnd-scoreTimeEnd
+    return outliers[:number],timeTreeEnd-timeTreeStart,scoreTimeEnd-timeTreeEnd
+
+
+
+
 
 #import pandas as pd
 #df=pd.DataFrame(pairWiseData,columns=["trace","activityA","ActivityB","x","y","eventId"])
