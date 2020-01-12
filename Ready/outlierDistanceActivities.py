@@ -124,15 +124,24 @@ def createPairs(outliers, sequenceOfIndexes):
     return outlyingPairs
 
 
-logFile = "../BPI_Challenge_2012.xes"
-log = xes_factory.apply(logFile)
-# [trace,activity index,time]
-dataVectors, seq = dataPreprocess(log)
-start = time.time()
-myOutliers = findOutlierEvents(dataVectors, 100, stdDeviationTImes=4)
-print(time.time() - start)
-pairs = createPairs(myOutliers, seq)
 
-# theTime = time.time()
-# k = nsmallest(5000, s, key=lambda x: abs(x - 51321))
-# print(time.time() - theTime)
+def main(logFile,k,stdDeviationTimes=4,threshold=None):
+    print("importing log")
+    log = xes_factory.apply(logFile)
+    # [trace,activity index,time]
+    print("preprocess ...")
+    dataVectors, seq = dataPreprocess(log)
+    print("calculate pairs")
+    start = time.time()
+    myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes,threshold=threshold)
+    pairs = createPairs(myOutliers, seq)
+    return pairs,time.time() - start
+
+#print 1d
+#import matplotlib.pyplot as plt
+#import random
+#data=random.choices(dataVectors[8],100)
+#data=random.choices(dataVectors[8],k=100)
+#df=pd.DataFrame([[i[2],0] for i in data],columns=["times","nulls"])
+#df.plot(kind="scatter",x="times",y="nulls")
+#plt.savefig("1d.png")
