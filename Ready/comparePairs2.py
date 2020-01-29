@@ -45,11 +45,11 @@ distanceOutlierPairsPre50,t50=outlierDistanceActivities.main(logFile,neighbors,s
 neighbors=10
 
 logFile="../BPI_Challenge_2012.xes"
-import outlierDistanceActivities,outlierPairsCurveFitting, outlierPairWise
-n=[10,20,50,100,250]
-d=[outlierDistanceActivities.main(logFile,neighbors,stdDeviationTimes=4,threshold=None) for neighbors in n]
+import outlierDistanceActivities,outlierPairsCurveFitting
+n=[20,50,100,250,500,750,1000]
+d1=[outlierDistanceActivities.main(logFile,neighbors,stdDeviationTimes=4,threshold=None) for neighbors in n]
 with open("outlierEventTime.txt","w") as f:
-    for index,x in enumerate(d):
+    for index,x in enumerate(d1):
         f.write(str(n[index])+","+str(x[1])+"\n")
         with open("outliersDistanceEvents.txt","a+") as outFile:
             outFile.write(str(n[index])+"\n")
@@ -67,7 +67,8 @@ x=[random.randint(0,40) for i in range(30)]
 y=[random.randint(80,120) for _ in range(30)]
 k=x+[60]+y
 
-thresholds = [0.1,0.05,0.02,0.01,0.0075,0.005,0.0025,0.001]
+#thresholds = [0.1,0.05,0.02,0.01,0.0075,0.005,0.0025,0.001]
+thresholds=[0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
 d=[outlierPairsCurveFitting.main(logFile,threshold) for threshold in thresholds]
 with open("distributionTimes.txt","w") as f:
     for index,x in enumerate(d):
@@ -76,3 +77,49 @@ with open("distributionTimes.txt","w") as f:
             outFile.write(str(threshold[index])+"\n")
             for outlier in x[0]:
                 outFile.write(str(outlier)+"\n")
+                
+
+#compare the number of outliers in d (distributions) and d1 (distance)
+n=[100,250,500,750,1000,1500,2000]
+d1=[outlierDistanceActivities.main(logFile,neighbors,stdDeviationTimes=4,threshold=None) for neighbors in n]
+import matplotlib.pyplot as plt
+import numpy as np
+thresholds=[0.001,0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
+d=[outlierPairsCurveFitting.main(logFile,threshold) for threshold in thresholds]
+d_length=[len(x[0]) for x in d]
+d1_length=[len(x[0]) for x in d1]
+yaxis=np.arange(min(min(d_length),min(d1_length)),max(max(d1_length),max(d_length))+200,200)
+minimum=min(min(d_length),min(d1_length))
+maximum=max(max(d1_length),max(d_length))
+fig=plt.figure()
+ax=fig.add_subplot(111, label="distance")
+ax2=fig.add_subplot(111, label="distribution", frame_on=False)
+ax.plot(n, d1_length, color="C0")
+ax.set_xlabel("Number of Neighbors", color="C0")
+ax.set_ylabel("Number of outliers", color="C0")
+ax.set_ylim([minimum,maximum])
+ax.tick_params(axis='x', colors="C0")
+#ax.tick_params(axis='y', colors="C0")
+ax2.plot(thresholds, d_length, color="C1")
+ax2.xaxis.tick_top()
+ax2.set_xlabel('Threshold', color="C1")      
+ax2.xaxis.set_label_position('top') 
+ax2.tick_params(axis='x', colors="C1")
+ax2.set_ylim([minimum,maximum])
+plt.grid(True)
+plt.savefig("numberofoutliers.png")
+plt.show()
+
+k=outlierPairsCurveFitting.main(logFile,0.003)
+k1=outlierDistanceActivities.main(logFile,300,stdDeviationTimes=4,threshold=None)
+hits=[]
+miss=[]
+for distrO in k[0]:
+    flag=False
+    for distanceO in k1[0]:
+        if distrO[0]==distanceO[0] and distrO[1]==distanceO[1] and distrO[2]==distanceO[2] and distrO[7]==distanceO[7]:
+            hits.append(distrO)
+            flag=True
+            break
+    if not flag:
+        miss.append(distrO)

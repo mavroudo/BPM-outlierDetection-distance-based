@@ -22,6 +22,12 @@ from statistics import mean
 
 
 def dataPreprocess(log):
+    """
+        Transform every trace in the log file in a way that we will have direct
+        access to every event in a trace and its time. Also returns a array
+        with the initial sequence of events in a trace that will be used latter
+        to create the pairs
+    """
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
     dataVectors=[]
@@ -43,6 +49,10 @@ def dataPreprocess(log):
     return dataVectors,theIndex
 
 def readFromFile(log):
+    """
+        This functions will read the distribution evaluation from the file. 
+        It will be used if we had already run the experiments, to save time.
+    """
     dists=[]
     with open("distributions.txt","r") as f:
         for line in f:
@@ -71,7 +81,7 @@ def readFromFile(log):
     distributionsDF["R2"]=[i[2] for i in oneDist]
     return distributionsDF
 
-def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
+def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):    
     originalData.sort()
     valuesFromDistribution.sort()
     sum=0
@@ -80,6 +90,12 @@ def calculateRMSE(originalData:np.ndarray,valuesFromDistribution:np.ndarray):
     return math.sqrt(sum/len(originalData))
 
 def calculateDistributions(timeData):
+    """
+        This function will use 8 threads to run for every distribution in parallel.
+        So someone can test more than the 9 dstributions that were given in the 
+        paper. The scipy supports up to 98 different distriburions for continuous
+        values
+    """
     y=np.array(timeData)#create the dataFrame
     sc=StandardScaler() #transform using standard scaler
     yy = y.reshape (-1,1)
@@ -88,10 +104,7 @@ def calculateDistributions(timeData):
     del yy    
     import warnings #mute the warning from the getattr
     warnings.filterwarnings("ignore")
-    #dist_names = sorted(
-    #     [k for k in scipy.stats._continuous_distns.__all__ if not (
-    #         (k.startswith('rv_') or k.endswith('_gen') or (k == 'levy_stable') or (k=="wrapcauchy")))])
-    
+    #the distributions that used in the paper
     dist_names=['beta','expon','norm','lognorm','gamma','uniform','weibull_max','weibull_min','t']
     rmseLocker=threading.Lock()
     r2Locker=threading.Lock()
@@ -243,6 +256,10 @@ def outlierDetectionWithDistribution(log,dataVectors,threshold):
 
 
 def createPairsFromOutliers(outliers,index,dataVectors,means):
+    """
+        After finding the outliers we can create the outlier pairs, using the 
+        initlial sequence of events in every trace.
+    """
     #get the indexes in their seq
     indexOfOutliers=[]
     for outlier in outliers:

@@ -15,6 +15,11 @@ from statistics import mean
 
 
 def dataPreprocess(log):
+    """
+        Takes the log file and transform every trace in a way, that we will keep 
+        the information for the time per event and also the original sequence
+        for every event in the same trace
+    """
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities = list(activities_all.keys())
     times = [[] for i in range(len(activities))]
@@ -89,6 +94,12 @@ def findOutlierEvents(dataVectors, k, stdDeviationTImes=4, threshold=None):
 
 
 def createPairs(outliers, sequenceOfIndexes):
+    """
+        After finding the outliers, we will use the original sequence of events in 
+        every trace in order to create the pairs. The pairs will be also 
+        take the value of over if the are outliers at the top edge of the distribution,
+        under if they are at the down edge and ok if they are somewhere in the middle.
+    """
     outliersSortedByTrace = sorted(outliers, key=lambda x: (x[0], x[1]))
     indexInOutliers = 0
     outlyingPairs = []
@@ -136,12 +147,3 @@ def main(logFile,k,stdDeviationTimes=4,threshold=None):
     myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes,threshold=threshold)
     pairs = createPairs(myOutliers, seq)
     return pairs,time.time() - start
-
-#print 1d
-#import matplotlib.pyplot as plt
-#import random
-#data=random.choices(dataVectors[8],100)
-#data=random.choices(dataVectors[8],k=100)
-#df=pd.DataFrame([[i[2],0] for i in data],columns=["times","nulls"])
-#df.plot(kind="scatter",x="times",y="nulls")
-#plt.savefig("1d.png")

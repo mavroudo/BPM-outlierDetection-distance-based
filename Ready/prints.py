@@ -41,3 +41,4 @@ testDF=pd.DataFrame(data,columns='Neighbors Threshold Hits Misses'.split(" "))
 
 for d in data:
     print(d[2]/(d[2]+d[3]))
+    

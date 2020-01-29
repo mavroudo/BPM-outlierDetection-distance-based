@@ -17,6 +17,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def preprocess(log):
+    """
+        Transform every trace in the log file, which is represented as a json,
+        in a array that we will have easy access to times for every event in a trace
+        and the sequence of these events. Also uses standarization to transofrm
+        the time values per activity.
+    """
     activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
     activities=list(activities_all.keys())
     dataVectors=[]
@@ -31,8 +37,7 @@ def preprocess(log):
             previousTime=event["time:timestamp"]
             timesSeconds=[[i.total_seconds() for i in x] for x in times]
             sequentialData[outerIndex].append([indexActivity,time.total_seconds()])
-        dataVectors.append(timesSeconds)
-    
+        dataVectors.append(timesSeconds)    
     #transofrm datavectors to contain times per activity
     timesPerActivity=[[k  for i in [x[index] for x in dataVectors] for k in i] for index in range(len(dataVectors[0]))]
     #standard scalers
@@ -56,6 +61,9 @@ def preprocess(log):
 
 
 def createRtree(data):
+    """
+        Creates an R-Tree from the given data
+    """
     tree=Rtree()
     for index,pair in enumerate(data): 
         tree.insert(index,(pair[3],pair[4]),obj=pair)
@@ -67,6 +75,10 @@ def distance2Pairs(pair1,pair2):
 
   
 def outlierScore(k,tree,data):
+    """
+        Calculates the outlierScore for every data, by calculating the sum of 
+        distances between this point and the k-neighrest points to it.
+    """
     scores=[]
     for index,pair in enumerate(data):
         utils.progress(index,len(data),status="Calculate the outlierScore")
@@ -96,6 +108,10 @@ def readFromFile():
             yield data
             
 def testRTree(pairWiseData):
+    """
+        Is used in order to test the time that takes to create the r-tree, based on 
+        the number of values that we have
+    """
     data=[20000,50000,100000,150000,200000,249113]
     times=[0,0,0,0,0,0]
     for index,n in enumerate(data):
@@ -112,6 +128,10 @@ def testRTree(pairWiseData):
 
 import random    
 def testQueriesInTree(pairWiseData,tree):
+    """
+        In this method we test how the time of a query increases as the number of
+        k in increasing
+    """
     neighbors=[100,500,1000,3000,5000,10000,30000,50000]
     times=[0 for _ in range(len(neighbors))]
     queries=1000
@@ -127,12 +147,7 @@ def testQueriesInTree(pairWiseData,tree):
     df=pd.DataFrame([[neighbors[i],times[i]]for i in range(len(times))],columns=["Neighbors","Time"])
     df.plot(kind="scatter",x="Neighbors",y="Time",title="Query time in R-Tree based on K")
     plt.savefig("queriesTime.png")
-            
-        
-
-    
-    
-            
+                       
 
 def main(logFile,neighbors,number):
     logFile="../BPI_Challenge_2012.xes"
