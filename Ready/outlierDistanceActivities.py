@@ -93,7 +93,7 @@ def findOutlierEvents(dataVectors, k, stdDeviationTImes=4, threshold=None):
     return outliers
 
 
-def createPairs(outliers, sequenceOfIndexes):
+def createPairs(outliers, sequenceOfIndexes,positionOfTime):
     """
         After finding the outliers, we will use the original sequence of events in 
         every trace in order to create the pairs. The pairs will be also 
@@ -106,16 +106,14 @@ def createPairs(outliers, sequenceOfIndexes):
     while indexInOutliers < len(outliersSortedByTrace):
         outlier = outliersSortedByTrace[indexInOutliers]
         inSeq = sequenceOfIndexes[outlier[0]][outlier[1]]
-        try:  # this try is for the outliers
-            previous = outliersSortedByTrace[indexInOutliers - 1]  # search in the outliers
-            if outlier[1] == 0 or (previous[0] == outlier[0] and previous[1] == outlier[1] + 1):
-                pass
-            else:  # check to create the previous only in sequence
-                previous = sequenceOfIndexes[outlier[0]][outlier[1] - 1]
-                outlyingPairs.append(
-                    [outlier[0], previous[0], inSeq[0], previous[1], outlier[2], "ok", outlier[4], outlier[1] - 1])
-        except:
-            pass  # there was no previous at some point
+        # checking for previous
+        previous=outliersSortedByTrace[indexInOutliers-1]
+        if indexInOutliers == 0 or (outlier[1] == 0 or (previous[0] == outlier[0] and previous[1] == outlier[1] + 1)):
+            pass
+        else:  # check to create the previous only in sequence
+            previous = sequenceOfIndexes[outlier[0]][outlier[1] - 1]
+            outlyingPairs.append(
+                [outlier[0], previous[0], inSeq[0], previous[1], outlier[2], "ok", outlier[positionOfTime], outlier[1] - 1])
 
         if indexInOutliers != len(outliers) - 1 and outliersSortedByTrace[indexInOutliers + 1][0] == outlier[0] and \
                 outliersSortedByTrace[indexInOutliers + 1][1] == outlier[1] - 1:  # check if the next outlier is the
@@ -123,20 +121,20 @@ def createPairs(outliers, sequenceOfIndexes):
             nextEvent = outliersSortedByTrace[indexInOutliers + 1]
             inSeq2 = sequenceOfIndexes[nextEvent[0]][nextEvent[1]]  # that means it is the next
             outlyingPairs.append(
-                [outlier[0], inSeq[0], inSeq2[0], outlier[2], nextEvent[2], outlier[4], nextEvent[4], outlier[1]])
+                [outlier[0], inSeq[0], inSeq2[0], outlier[2], nextEvent[2], outlier[positionOfTime], nextEvent[positionOfTime], outlier[1]])
         else:  # the next activity is not an outlier
             try:
                 nextEvent = sequenceOfIndexes[outlier[0]][outlier[1] + 1]  # this may throw exception
                 outlyingPairs.append(
-                    [outlier[0], inSeq[0], nextEvent[0], outlier[2], nextEvent[1], outlier[4], "ok", outlier[1]])
+                    [outlier[0], inSeq[0], nextEvent[0], outlier[2], nextEvent[1], outlier[positionOfTime], "ok", outlier[1]])
             except:
                 pass  # there is no next event in this trace to check
         indexInOutliers += 1
     return outlyingPairs
 
 
-
-def main(logFile,k,stdDeviationTimes=4,threshold=None):
+def main(logFile, k, stdDeviationTimes=4, threshold=None):
+    logFile = "../BPI_Challenge_2012.xes"
     print("importing log")
     log = xes_factory.apply(logFile)
     # [trace,activity index,time]
@@ -144,6 +142,6 @@ def main(logFile,k,stdDeviationTimes=4,threshold=None):
     dataVectors, seq = dataPreprocess(log)
     print("calculate pairs")
     start = time.time()
-    myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes,threshold=threshold)
-    pairs = createPairs(myOutliers, seq)
-    return pairs,time.time() - start
+    myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes, threshold=threshold)
+    pairs = createPairs(myOutliers, seq,positionOfTime=4)
+    return pairs, time.time() - start
