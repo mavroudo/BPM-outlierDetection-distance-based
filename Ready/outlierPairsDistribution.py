@@ -9,7 +9,8 @@ import pandas as pd
 from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
 from pm4py.objects.log.importer.xes import factory as xes_factory
 import numpy as np
-from outlierDistanceActivities import dataPreprocess, createPairs
+from outlierDistanceActivities import  createPairs
+from preprocess import dataPreprocess2012
 from sklearn.metrics import r2_score
 import os,warnings,scipy,math ,time
 from statistics import mean
@@ -155,7 +156,7 @@ def main(logFile,threshold):
     print("Loading data..")
     log=xes_factory.apply(logFile)
     print("Preprocessing")
-    dataVectorsDist,seqDist=dataPreprocess(log)
+    dataVectorsDist,seqDist=dataPreprocess2012(log)
     print("Detecting outliers")
     timeStart=time.time()
     myoutliers,distributions,means=outlierDetectionWithDistribution(log,dataVectorsDist,0.0025)

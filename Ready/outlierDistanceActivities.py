@@ -6,7 +6,7 @@ Created on Sat Jan 11 10:22:47 2020
 @author: mavroudo
 """
 from pm4py.objects.log.importer.xes import factory as xes_factory
-from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
+from preprocess import dataPreprocess2012
 from bisect import bisect
 from heapq import nsmallest
 import time
@@ -14,26 +14,7 @@ from statistics import stdev
 from statistics import mean
 
 
-def dataPreprocess(log):
-    """
-        Takes the log file and transform every trace in a way, that we will keep 
-        the information for the time per event and also the original sequence
-        for every event in the same trace
-    """
-    activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
-    activities = list(activities_all.keys())
-    times = [[] for i in range(len(activities))]
-    sequence = []
-    for indexTrace, trace in enumerate(log):
-        previousTime = trace.attributes["REG_DATE"]
-        sequence.append([])
-        for index, event in enumerate(trace):
-            indexActivity = activities.index(event["concept:name"])
-            time = event["time:timestamp"] - previousTime
-            times[indexActivity].append([indexTrace, index, time.total_seconds()])
-            previousTime = event["time:timestamp"]
-            sequence[-1].append([indexActivity, time.total_seconds()])
-    return times, sequence
+
 
 
 def k_nearest(k, center, sorted_data):
@@ -139,7 +120,7 @@ def main(logFile, k, stdDeviationTimes=4, threshold=None):
     log = xes_factory.apply(logFile)
     # [trace,activity index,time]
     print("preprocess ...")
-    dataVectors, seq = dataPreprocess(log)
+    dataVectors, seq = dataPreprocess2012(log)
     print("calculate pairs")
     start = time.time()
     myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes, threshold=threshold)
