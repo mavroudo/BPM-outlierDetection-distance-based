@@ -56,3 +56,4 @@ dataVectors, seq = dataPreprocess2012(log)
 
 log2="BPI Challenge 2017.xes"
 log2 = xes_factory.apply(log2)
+dataVectors, seq = dataPreprocess2017(log2)
