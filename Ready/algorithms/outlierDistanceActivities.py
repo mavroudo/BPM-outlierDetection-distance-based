@@ -6,7 +6,6 @@ Created on Sat Jan 11 10:22:47 2020
 @author: mavroudo
 """
 from pm4py.objects.log.importer.xes import factory as xes_factory
-from preprocess import dataPreprocess2012
 from bisect import bisect
 from heapq import nsmallest
 import time
@@ -114,15 +113,10 @@ def createPairs(outliers, sequenceOfIndexes,positionOfTime):
     return outlyingPairs
 
 
-def main(logFile, k, stdDeviationTimes=4, threshold=None):
-    logFile = "../BPI_Challenge_2012.xes"
-    print("importing log")
-    log = xes_factory.apply(logFile)
-    # [trace,activity index,time]
-    print("preprocess ...")
-    dataVectors, seq = dataPreprocess2012(log)
+def main(dataVectors,seq, k, stdDeviationTimes=4, threshold=None):
     print("calculate pairs")
     start = time.time()
     myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes, threshold=threshold)
+    executionTime=time.time() - start
     pairs = createPairs(myOutliers, seq,positionOfTime=4)
-    return pairs, time.time() - start
+    return pairs, executionTime

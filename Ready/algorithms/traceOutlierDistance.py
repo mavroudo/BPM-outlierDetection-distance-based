@@ -128,7 +128,7 @@ def outliers(logName,k,r,mtree,dataVectors):
     preparedQueries=[]
     if fileFound==None:
        preparedQueries=calculateQueries(mtree,dataVectors,k,r)
-       writeTopKNeighborsToFile(preparedQueries,k,r,logFile)
+       writeTopKNeighborsToFile(preparedQueries,k,r)
     else:
         preparedQueries=readFromFile(fileFound)
     return outliersKNN(preparedQueries,r,k)
@@ -147,20 +147,30 @@ def createMTree(dataVectorsStandarized):
             pass
     return myTree
 
-#Can use arguments from command line
-logFile="BPI_Challenge_2012.xes"
-k=500
-r=3
+def getNeirestNeighbors(mtree:MTree, dataVectors:list,K):
+    """
+        Get the distance for the closest neighbors for every trace
+    """
+    queries=[]
+    for index,dataVector in enumerate(dataVectors): 
+        print(index)
+        x=list(mtree.get_nearest(str(dataVector),limit=K))
+        m=[i[1] for i in x]
+        queries.append(m)
+    return queries
 
-print("Loading data..")
-log=xes_factory.apply(logFile)
-
-print("Preprocess Data..")
-dataVectors,statsTimes,activities=dataPreprocess(log)
-dataVectorsStandarized=transform(dataVectors)
-
-print("Creating Mtree...")
-mtree=createMTree(dataVectorsStandarized)
+def main(logFile,k,r= None):
+    print("Loading data..")
+    log=xes_factory.apply(logFile)   
+    print("Preprocess Data..")
+    dataVectors,statsTimes,activities=dataPreprocess(log)
+    dataVectorsStandarized=transform(dataVectors)   
+    print("Creating Mtree...")
+    mtree=createMTree(dataVectorsStandarized)  
+    if r==None:
+        print("Getting neirest neighbors")
+        return getNeirestNeighbors(mtree,dataVectors,k)
+    else:
+        print("Find outliers based on given K and R")
+        return outliers(logFile,k,r,mtree,dataVectorsStandarized)
     
-print("Find outliers based on given K and R")
-outliersFound=outliers(logFile,k,r,mtree,dataVectorsStandarized)

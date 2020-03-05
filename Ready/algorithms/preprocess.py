@@ -50,10 +50,5 @@ def dataPreprocess2017(log):
     return times, sequence
 
 
-log1="../BPI_Challenge_2012.xes"
-log = xes_factory.apply(log1)
-dataVectors, seq = dataPreprocess2012(log)
 
-log2="BPI Challenge 2017.xes"
-log2 = xes_factory.apply(log2)
-dataVectors, seq = dataPreprocess2017(log2)
+
