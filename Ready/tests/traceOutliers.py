@@ -22,21 +22,28 @@ for k in kOptions:
         sumOfDistances.append(sum(n[:k]))
     data.append(sumOfDistances.sort())
 
-with open("tests/krTest.txt","w") as f:
-    for k,d in zip(kOptions,data):
-        f.write(str(k))
-        for distance in d:
-            f.write(","+str(distance))
-        f.write(",\n")
-    
-distances=[]
-with open("tests/krTest.txt","r") as f: 
-    for line in f:
-        distances.append(list(map(float,line.split(",")[:-1])))
-   
-for d in distances:   
-    plt.plot([i for i in range(len(d[1:]))],d[1:],label=str(d[0]))
-plt.legend(loc='best')
-plt.title("K-R test")
-plt.savefig('tests/krTest.png')
+try:
+    with open("tests/krTests.txt","w") as f:
+        for k,d in zip(kOptions,data):
+            f.write(str(k))
+            for distance in d:
+                f.write(","+str(distance))
+            f.write(",\n")
+
+    distances=[]
+    with open("tests/krTests.txt","r") as f:
+        for line in f:
+            distances.append(list(map(float,line.split(",")[:-1])))
+
+    for d in distances:
+        plt.plot([i for i in range(len(d[1:]))],d[1:],label=str(d[0]))
+    plt.legend(loc='best')
+    plt.title("K-R test")
+    plt.savefig('tests/krTest.png')
+except:
+    for d in data:
+        plt.plot([i for i in range(len(d[1:]))],d[1:],label=str(d[0]))
+    plt.legend(loc='best')
+    plt.title("K-R test")
+    plt.savefig('tests/krTest.png')
 

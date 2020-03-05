@@ -7,10 +7,8 @@ run for the distributions that were given in the paper
 """
 import pandas as pd
 from pm4py.algo.filtering.log.attributes import attributes_filter as log_attributes_filter
-from pm4py.objects.log.importer.xes import factory as xes_factory
 import numpy as np
-from outlierDistanceActivities import  createPairs
-from preprocess import dataPreprocess2012
+from algorithms.outlierDistanceActivities import  createPairs
 from sklearn.metrics import r2_score
 import os,warnings,scipy,math ,time
 from statistics import mean
@@ -74,7 +72,6 @@ def calculateDistributions(timeData):
         valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(timeData))])
         rmseValue=calculateRMSE(timeData,valuesFromDistribution)
         r2value=r2_score(timeData,valuesFromDistribution)
-        print(distribution,rmseValue,r2value)
         r2.append(r2value)
         rmse.append(rmseValue)
     try:   
@@ -88,15 +85,16 @@ def calculateDistributions(timeData):
         print('Failed error with pdDataframe: '+ str(e))
 
 def getDistributionsFitting(timeToSeconds,log):
+    timeStart=time.time()
     dists=[]
     for index,i in enumerate(timeToSeconds):
-        print(index)
         distributionsDF=calculateDistributions(i)
         distributions=[str(distributionsDF.iloc[x]["Distribution"])+"-"+str(distributionsDF.iloc[x]["RMSE"])+"-"+str(distributionsDF.iloc[x]["R2"]) for x in range(len(distributionsDF))]
         try:           
             dists.append([index,distributions])
         except:
             dists.append(distributionsDF)
+    print("Distribution fitting took: "+str(time.time()-timeStart))
     f=open("distributions.txt","w")
     for dist in dists:
         f.write(str(dist[0])+", ")
@@ -152,14 +150,10 @@ def outlierDetectionWithDistribution(log,dataVectors,threshold):
             
 
 
-def main(logFile,threshold):
-    print("Loading data..")
-    log=xes_factory.apply(logFile)
-    print("Preprocessing")
-    dataVectorsDist,seqDist=dataPreprocess2012(log)
+def main(log,dataVectorsDist,seqDist,threshold):
     print("Detecting outliers")
     timeStart=time.time()
-    myoutliers,distributions,means=outlierDetectionWithDistribution(log,dataVectorsDist,0.0025)
+    myoutliers,distributions,means=outlierDetectionWithDistribution(log,dataVectorsDist,threshold)
     timeEnd=time.time()
     print("Creating pairs")
     outlierPairs=createPairs(myoutliers,seqDist,positionOfTime=3)

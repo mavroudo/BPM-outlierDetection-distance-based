@@ -94,14 +94,15 @@ for x,y in zip([2],[3]):
     outliersCreated=createOutliers(info,x,y,100)
     outliersPositioned=addOutliersInDataDistance(seq,index,dataVectorsDistance,dataVectorsCurve,outliersCreated)   
     #using Distance technique to find outlier
-    neighbors=[250,500,750,1000,1250,1500,1750,2000]
+    #neighbors=[250,500,750,1000,1250,1500,1750,2000]
+    neighbors=[250,500]
     results=[]
     for n in neighbors:
         print(x,y,n)
         foundOutliersDistance=findOutlierEvents(dataVectorsDistance,n,stdDeviationTImes=3)
         totalFoundDistance=checkIfOutliersFoundDistance(foundOutliersDistance,outliersPositioned)
         results.append([n,totalFoundDistance/100,len(foundOutliersDistance)])    
-    with open("resultsDistanceErrors"+str(x)+"-"+str(y)+".txt","w") as f:
+    with open("tests/resultsDistanceErrors"+str(x)+"-"+str(y)+".txt","w") as f:
         for r in results:
             f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
     #using curve fitting to find the outliers       
