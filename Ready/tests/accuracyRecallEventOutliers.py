@@ -53,7 +53,7 @@ def checkIfOutliersFoundDistance(foundOutliers,outliersPositioned):
                 counter+=1
                 break
     return counter
-
+import os
 from algorithms import outlierDistanceActivities,preprocess,outlierPairsDistribution
 kOptions=[250,500,750,1000,1250,1500,1750,2000]
 thresholds=[0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
@@ -71,15 +71,28 @@ for logFile in logFiles:
     info=[]
     for activity in onlyTimes:
         info.append([len(activity),mean(activity),stdev(activity)])    
-    for x,y in zip([2],[3]):
+    for x,y in zip([3,4],[4,5]):
         outliersCreated=createOutliers(info,x,y,100)
         outliersPositioned=addOutliers(seq,dataVectors,outliersCreated)   
         #using Distance technique to find outlier
         #neighbors=[250,500,750,1000,1250,1500,1750,2000]
-        neighbors=[250,500]
         results=[]
-        for n in neighbors:
+        for n in kOptions:
             print(x,y,n)
             foundOutliersDistance=findOutlierEvents(dataVectors,n,stdDeviationTImes=3)
             totalFoundDistance=checkIfOutliersFoundDistance(foundOutliersDistance,outliersPositioned)
             results.append([n,totalFoundDistance/100,len(foundOutliersDistance)])    
+        with open("tests/resultsDistanceErrors"+str(x)+"-"+str(y)+".txt","w") as f:
+            for r in results:
+                f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
+    #   using curve fitting to find the outliers       
+        results=[]
+        for t in thresholds:   
+            print(x,y,t)
+            foundOutliersCurve=outlierPairsDistribution.outlierDetectionWithDistribution(log,dataVectors,t)
+            totalFoundCurve=checkIfOutliersFoundDistance(foundOutliersCurve,outliersPositioned)
+            results.append([t,totalFoundCurve/100,len(foundOutliersDistance)]) 
+        with open("tests/resultsCurveErrors"+str(x)+"-"+str(y)+".txt","w") as f:
+            for r in results:
+                f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
+        os.remove("distributions.txt")
