@@ -6,8 +6,10 @@ Created on Thu Mar  5 11:53:51 2020
 @author: mavroudo
 """
 
-from algorithms import outlierDistanceActivities,preprocess,outlierPairsDistribution
 import os
+
+from algorithms import outlierDistanceActivities, preprocess, outlierPairsDistribution
+
 kOptions=[250,500,750,1000,1250,1500,1750,2000]
 thresholds=[0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
 

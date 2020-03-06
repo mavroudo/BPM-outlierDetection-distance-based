@@ -8,7 +8,8 @@ Created on Thu Mar  5 12:35:37 2020
 
 from pm4py.objects.log.importer.xes import factory as xes_factory
 from algorithms.outlierDistanceActivities import findOutlierEvents
-
+import os
+from algorithms import outlierDistanceActivities,preprocess,outlierPairsDistribution
 import algorithms.outlierPairsCurveFitting
 from statistics import stdev,mean
 import random 
@@ -53,11 +54,11 @@ def checkIfOutliersFoundDistance(foundOutliers,outliersPositioned):
                 counter+=1
                 break
     return counter
-import os
-from algorithms import outlierDistanceActivities,preprocess,outlierPairsDistribution
+
 kOptions=[250,500,750,1000,1250,1500,1750,2000]
 thresholds=[0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
 logFiles=["../BPI_Challenge_2012.xes","BPI Challenge 2017.xes"]
+
 for logFile in logFiles:
     print("importing log")
     log = xes_factory.apply(logFile)
@@ -73,16 +74,14 @@ for logFile in logFiles:
         info.append([len(activity),mean(activity),stdev(activity)])    
     for x,y in zip([3,4],[4,5]):
         outliersCreated=createOutliers(info,x,y,100)
-        outliersPositioned=addOutliers(seq,dataVectors,outliersCreated)   
-        #using Distance technique to find outlier
-        #neighbors=[250,500,750,1000,1250,1500,1750,2000]
+        outliersPositioned=addOutliers(seq,dataVectors,outliersCreated)
         results=[]
         for n in kOptions:
             print(x,y,n)
             foundOutliersDistance=findOutlierEvents(dataVectors,n,stdDeviationTImes=3)
             totalFoundDistance=checkIfOutliersFoundDistance(foundOutliersDistance,outliersPositioned)
             results.append([n,totalFoundDistance/100,len(foundOutliersDistance)])    
-        with open("tests/resultsDistanceErrors"+str(x)+"-"+str(y)+".txt","w") as f:
+        with open("tests/resultsDistanceErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
     #   using curve fitting to find the outliers       
@@ -92,7 +91,7 @@ for logFile in logFiles:
             foundOutliersCurve=outlierPairsDistribution.outlierDetectionWithDistribution(log,dataVectors,t)
             totalFoundCurve=checkIfOutliersFoundDistance(foundOutliersCurve,outliersPositioned)
             results.append([t,totalFoundCurve/100,len(foundOutliersDistance)]) 
-        with open("tests/resultsCurveErrors"+str(x)+"-"+str(y)+".txt","w") as f:
+        with open("tests/resultsCurveErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
         os.remove("distributions.txt")

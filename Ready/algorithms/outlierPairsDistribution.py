@@ -69,11 +69,16 @@ def calculateDistributions(timeData):
     for index,distribution in enumerate(list(dist_names)):
         dist = getattr(scipy.stats, distribution)
         param = dist.fit(timeData)
-        valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(timeData))])
-        rmseValue=calculateRMSE(timeData,valuesFromDistribution)
-        r2value=r2_score(timeData,valuesFromDistribution)
-        r2.append(r2value)
-        rmse.append(rmseValue)
+        try:
+            valuesFromDistribution=np.array([round(i,7) for i in dist.rvs(*param[:-2],loc=param[-2],scale=param[-1], size=len(timeData))])
+            rmseValue=calculateRMSE(timeData,valuesFromDistribution)
+            r2value=r2_score(timeData,valuesFromDistribution)
+            r2.append(r2value)
+            rmse.append(rmseValue)
+        except ValueError:
+            rmse.append(math.inf)
+            r2.append(0)
+        
     try:   
         distributionsDF = pd.DataFrame()
         distributionsDF['Distribution'] = dist_names
