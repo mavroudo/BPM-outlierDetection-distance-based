@@ -20,7 +20,7 @@ for k in kOptions:
     sumOfDistances=[]
     for n in neighbors:
         sumOfDistances.append(sum(n[:k]))
-    data.append(sumOfDistances.sort())
+    data.append(sorted(sumOfDistances))
 
 try:
     with open("tests/krTests.txt","w") as f:
