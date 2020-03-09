@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import time
 
+
 def createFiles(logFile,kOptions):
     neighbors=trace.main(logFile,max(kOptions),None)
     with open("tests/trace_neighbors.txt","w") as f:
