@@ -24,8 +24,8 @@ timeTreeEnd=time.time()
 
 with open("tests/timeDistancesEvent.txt","w") as f:
    for k in kOptions:
-       pairs,time=outlierDistanceActivities.main(dataVectors,seq,k)
-       f.write(str(k)+","+str(time)+"\n")
+       pairs,executionTime=outlierDistanceActivities.main(dataVectors,seq,k)
+       f.write(str(k)+","+str(executionTime)+"\n")
 
 with open('tests/timeDistancesRtree.txt','w') as f:
     for k in kOptions:
