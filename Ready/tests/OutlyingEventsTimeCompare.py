@@ -28,7 +28,7 @@ for logFile in logFiles:
          identifier="2017"
     with open("tests/events-{}-distance.txt".format(identifier),"w") as f:
         for k in kOptions:
-            pairs,time=outlierDistanceActivities.main(dataVectors,seq,50)
+            pairs,time=outlierDistanceActivities.main(dataVectors,seq,k)
             f.write(str(k)+","+str(time)+"\n")
     with open("tests/events-{}-distribution.txt".format(identifier),"w") as f:
         for threshold in thresholds:
