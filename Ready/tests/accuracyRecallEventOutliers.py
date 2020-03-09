@@ -76,11 +76,11 @@ for logFile in logFiles:
         outliersCreated=createOutliers(info,x,y,100)
         outliersPositioned=addOutliers(seq,dataVectors,outliersCreated)
         results=[]
-        for n in kOptions:
-            print(x,y,n)
-            foundOutliersDistance=findOutlierEvents(dataVectors,n,stdDeviationTImes=3)
+        for k in kOptions:
+            print(x,y,k)
+            foundOutliersDistance=findOutlierEvents(dataVectors,k,stdDeviationTImes=3)
             totalFoundDistance=checkIfOutliersFoundDistance(foundOutliersDistance,outliersPositioned)
-            results.append([n,totalFoundDistance/100,len(foundOutliersDistance)])    
+            results.append([k,totalFoundDistance/100,len(foundOutliersDistance)])    
         with open("tests/resultsDistanceErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
@@ -90,7 +90,7 @@ for logFile in logFiles:
             print(x,y,t)
             foundOutliersCurve=outlierPairsDistribution.outlierDetectionWithDistribution(log,dataVectors,t)
             totalFoundCurve=checkIfOutliersFoundDistance(foundOutliersCurve,outliersPositioned)
-            results.append([t,totalFoundCurve/100,len(foundOutliersDistance)]) 
+            results.append([t,totalFoundCurve/100,len(foundOutliersCurve)]) 
         with open("tests/resultsCurveErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
