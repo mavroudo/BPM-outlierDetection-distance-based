@@ -169,7 +169,7 @@ def main(logFile,k,r= None):
     mtree=createMTree(dataVectorsStandarized)  
     if r==None:
         print("Getting neirest neighbors")
-        return getNeirestNeighbors(mtree,dataVectors,k)
+        return getNeirestNeighbors(mtree,dataVectorsStandarized,k)
     else:
         print("Find outliers based on given K and R")
         return outliers(logFile,k,r,mtree,dataVectorsStandarized)
