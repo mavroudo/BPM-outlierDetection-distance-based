@@ -12,10 +12,6 @@ import time
 from statistics import stdev
 from statistics import mean
 
-
-
-
-
 def k_nearest(k, center, sorted_data):
     'Return *k* members of *sorted_data* nearest to *center*'
     i = bisect(sorted_data, center)
@@ -40,6 +36,15 @@ def score(dataList, k):
         distances.append(distance)
     return sorted(scores, key=lambda x: x[3], reverse=True), mean(distances), stdev(distances)
 
+
+def scoreKR(dataList,k,r):
+    outliers=[]
+    sortedTimes = sorted([i[2] for i in dataList])
+    for index,event in enumerate(dataList):
+        neighbors=k_nearest(k+1,event[2],sortedTimes)
+        if neighbors[k]>r:
+            outliers.append(event)
+    return outliers
 
 def findOutlierEvents(dataVectors, k, stdDeviationTImes=4, threshold=None):
     """
@@ -72,6 +77,8 @@ def findOutlierEvents(dataVectors, k, stdDeviationTImes=4, threshold=None):
                     break
     return outliers
 
+def findOutlierEventsWithKR(dataVectors,k,r):
+    pass
 
 def createPairs(outliers, sequenceOfIndexes,positionOfTime):
     """
@@ -114,9 +121,14 @@ def createPairs(outliers, sequenceOfIndexes,positionOfTime):
 
 
 def main(dataVectors,seq, k, stdDeviationTimes=4, threshold=None):
-    print("calculate pairs")
+    print("Finding outliers")
     start = time.time()
     myOutliers = findOutlierEvents(dataVectors, k, stdDeviationTImes=stdDeviationTimes, threshold=threshold)
     executionTime=time.time() - start
+    print("calculate pairs")
     pairs = createPairs(myOutliers, seq,positionOfTime=4)
     return pairs, executionTime
+
+def usingKR(dataVectors,seq,k,r):
+    pass
+

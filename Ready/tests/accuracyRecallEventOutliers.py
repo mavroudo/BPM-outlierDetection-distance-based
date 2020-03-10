@@ -81,7 +81,7 @@ for logFile in logFiles:
             foundOutliersDistance=findOutlierEvents(dataVectors,k,stdDeviationTImes=3)
             totalFoundDistance=checkIfOutliersFoundDistance(foundOutliersDistance,outliersPositioned)
             results.append([k,totalFoundDistance/100,len(foundOutliersDistance)])    
-        with open("tests/resultsDistanceErrors("+str(x)+"-"+str(y)+").txt","w") as f:
+        with open("tests/data/resultsDistanceErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
     #   using curve fitting to find the outliers       
@@ -91,7 +91,7 @@ for logFile in logFiles:
             foundOutliersCurve=outlierPairsDistribution.outlierDetectionWithDistribution(log,dataVectors,t)
             totalFoundCurve=checkIfOutliersFoundDistance(foundOutliersCurve,outliersPositioned)
             results.append([t,totalFoundCurve/100,len(foundOutliersCurve)]) 
-        with open("tests/resultsCurveErrors("+str(x)+"-"+str(y)+").txt","w") as f:
+        with open("tests/data/resultsCurveErrors("+str(x)+"-"+str(y)+").txt","w") as f:
             for r in results:
                 f.write(str(r[0])+","+str(r[1])+","+str(r[2])+"\n")
         os.remove("distributions.txt")

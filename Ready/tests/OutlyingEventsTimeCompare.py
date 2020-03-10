@@ -26,11 +26,11 @@ for logFile in logFiles:
     else:
          dataVectors, seq = preprocess.dataPreprocess2017(log)
          identifier="2017"
-    with open("tests/events-{}-distance.txt".format(identifier),"w") as f:
+    with open("tests/data/events-{}-distance.txt".format(identifier),"w") as f:
         for k in kOptions:
             pairs,time=outlierDistanceActivities.main(dataVectors,seq,k)
             f.write(str(k)+","+str(time)+"\n")
-    with open("tests/events-{}-distribution.txt".format(identifier),"w") as f:
+    with open("tests/data/events-{}-distribution.txt".format(identifier),"w") as f:
         for threshold in thresholds:
             pairs,time=outlierPairsDistribution.main(log,dataVectors,seq,threshold)
             f.write(str(threshold)+","+str(time)+"\n")
