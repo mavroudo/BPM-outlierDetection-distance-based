@@ -51,6 +51,8 @@ def createTimeGraph(fileName1,fileName2):
                 koptions.append(rData[0])
     plt.plot(koptions,timeRtree,label="R-Tree")
     plt.plot(koptions,timeEvent,label="Events")
+    plt.ylabel("Execution time (s)")
+    plt.xlabel("Nearest neighbors")
     plt.title("Compare 2 distance methods for outlying pairs")
     plt.legend(loc='best')
     plt.savefig("tests/graphs/compareDistancePairs.png")

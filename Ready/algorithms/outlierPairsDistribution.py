@@ -13,7 +13,7 @@ from sklearn.metrics import r2_score
 import os,warnings,scipy,math ,time
 from statistics import mean
 
-def readFromFile(log):
+def readFromFile(log,activityNames=None):
     """
         This functions will read the distribution evaluation from the file. 
         It will be used if we had already run the experiments, to save time.
@@ -38,9 +38,12 @@ def readFromFile(log):
     pSorted=[[sorted(i,key=lambda x:x[2],reverse=True)] for i in p]
     oneDist=[i[0][0] for i in pSorted]
     distributionsDF = pd.DataFrame()  
-    activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
-    activities=list(activities_all.keys())
-    distributionsDF["Activity_Name"]=activities
+    if log!=None:
+        activities_all = log_attributes_filter.get_attribute_values(log, "concept:name")
+        activities=list(activities_all.keys())
+        distributionsDF["Activity_Name"]=activities
+    else:
+        distributionsDF["Activity_Name"]=activityNames
     distributionsDF['Distribution'] = [i[0] for i in oneDist]
     distributionsDF['RMSE'] = [i[1] for i in oneDist]
     distributionsDF["R2"]=[i[2] for i in oneDist]
@@ -89,7 +92,7 @@ def calculateDistributions(timeData):
     except Exception as e:
         print('Failed error with pdDataframe: '+ str(e))
 
-def getDistributionsFitting(timeToSeconds,log):
+def getDistributionsFitting(timeToSeconds,log,activityNames):
     timeStart=time.time()
     dists=[]
     for index,i in enumerate(timeToSeconds):
@@ -107,15 +110,15 @@ def getDistributionsFitting(timeToSeconds,log):
             f.write(distribution+", ")
         f.write("\n")
     f.close()
-    return readFromFile(log)
+    return readFromFile(log,activityNames)
 
 
-def outlierDetectionWithDistribution(log,dataVectors,threshold):
+def outlierDetectionWithDistribution(log,dataVectors,threshold,activityNames=None):
     times=[[i[2] for i in x]for x in dataVectors]
     means=[mean(i) for i in times]
     print("Getting distributions")
     if not os.path.isfile("distributions.txt"): #check if the distributions exist
-       distributionsDF=getDistributionsFitting(times,log) #calculate again
+       distributionsDF=getDistributionsFitting(times,log,activityNames) #calculate again
     else:
         distributionsDF=readFromFile(log) #read distrs from txt
     warnings.filterwarnings("ignore")

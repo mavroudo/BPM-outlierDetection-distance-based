@@ -60,8 +60,8 @@ def findOutlierEvents(dataVectors, k, stdDeviationTImes=4, threshold=None):
         scores, mean, std = score(activity, k)
         if threshold != None:
             topOutliers = int(threshold * len(activity))
-            for i in range(1, topOutliers + 1):
-                outliers.append(scores[-1 * i])
+            for i in range(0, topOutliers):
+                outliers.append(scores[i])
         else:
             outlyingUP = mean + stdDeviationTImes * std  # need over and under here
             outlyingDown = mean - stdDeviationTImes * std
