@@ -86,7 +86,6 @@ def createPlotTimeDimention(fileName):
             x.append(data[0])
             y.append(data[1])
     plt.plot(x,y)
-    plt.title("Compare time with dimentions")
     plt.xlabel("Dimentions")
     plt.ylabel("Time (s)")
     plt.savefig("tests/graphs/dimentionsTime.png")

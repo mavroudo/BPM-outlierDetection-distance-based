@@ -115,48 +115,52 @@ kOptions=[5,10,20,50,75,100,250,500]
 for k in kOptions:
     myOutliers = activities.findOutlierEvents(dataVectors, k, stdDeviationTImes=3,threshold=None)
     p,r=percisionRecall(traces,myOutliers,totalOutlierEvents)
-    data3.append([p,r])
+    print(p,r)
+    #data3.append([p,r])
     
 data=[]
 thresholds=[0.0025,0.005,0.0075,0.01,0.0125,0.0150,0.0175,0.02]
 for t in thresholds:
     myOutliers2,distributions,means= distribution.outlierDetectionWithDistribution(None,dataVectors,t,activityNames=["a1","a2","a3","a4"])
     p,r=percisionRecall(traces,myOutliers2,totalOutlierEvents)
+    print(p,r)
     data.append([p,r])
     
 data2=[]   
 for t in thresholds:
     myOutliers = activities.findOutlierEvents(dataVectors, 50, stdDeviationTImes=3,threshold=t)
-    percisionRecall(traces,myOutliers,totalOutlierEvents)
+    p,r=percisionRecall(traces,myOutliers,totalOutlierEvents)
+    print(p,r)
     data2.append([p,r])
 
 import matplotlib.pyplot as plt
 fig=plt.figure()
+#plt.title("Percision/Recall")
 ax=fig.add_subplot(121, label="precision")
 ax2=fig.add_subplot(121, label="recall", frame_on=False)
 
-minimum=min(min([i[1] for i in data]),min([i[0] for i in data]))
-maximum=max(max([i[1] for i in data]),max([i[0] for i in data]))
+minimum=min(min([i[1] for i in data2]),min([i[0] for i in data2]))
+maximum=max(max([i[1] for i in data2]),max([i[0] for i in data2]))
 
-ax.plot(thresholds, [i[0] for i in data], color="C0",label="Percision")
-ax.set_xlabel("Threshold", color="C0")
-ax.set_ylabel("%", color="C0")
-ax.set_ylim([minimum,maximum])
-ax2.plot(kOptions,[i[1] for i in data], color="C1",label="Recall")
-ax2.set_ylim([minimum,maximum])
+ax.plot([int(i*8000) for i in thresholds], [i[0] for i in data2], color="C0",label="Percision")
+ax.set_xlabel("Top outliers")
+ax.set_ylabel("Percent (%)")
+ax.set_ylim([0,1])
+ax2.plot([int(i*8000) for i in thresholds],[i[1] for i in data2], color="C1",label="Recall")
+ax2.set_ylim([0,1])
 plt.grid(True)
 
 ax=fig.add_subplot(122, label="precision")
 ax2=fig.add_subplot(122, label="recall", frame_on=False)
 
-minimum=min(min([i[1] for i in data2]),min([i[0] for i in data2]))
-maximum=max(max([i[1] for i in data2]),max([i[0] for i in data2]))
+minimum=min(min([i[1] for i in data]),min([i[0] for i in data]))
+maximum=max(max([i[1] for i in data]),max([i[0] for i in data]))
 
-ax.plot(thresholds, [i[0] for i in data2], color="C0",label="Percision")
-ax.set_xlabel("Number of Neighbors", color="C0")
-ax.set_ylim([minimum,maximum])
-ax2.plot(kOptions,[i[1] for i in data2], color="C1",label="Recall")
-ax2.set_ylim([minimum,maximum])
+ax.plot(thresholds, [i[0] for i in data], color="C0",label="Percision")
+ax.set_xlabel("Thresholds")
+ax.set_ylim([0,1])
+ax2.plot(thresholds,[i[1] for i in data], color="C1",label="Recall")
+ax2.set_ylim([0,1])
 plt.grid(True)
-
+plt.savefig("tests/graphs/percisionRecall.png")
 
