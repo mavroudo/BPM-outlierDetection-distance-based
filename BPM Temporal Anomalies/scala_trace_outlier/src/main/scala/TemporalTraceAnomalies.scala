@@ -11,7 +11,8 @@ object TemporalTraceAnomalies {
 
   def main(args: Array[String]): Unit = {
     val filename = "input/financial_log.xes"
-    val k = 50 //number of nearest neighbors
+    val k = 13000 //number of nearest neighbors
+    val dims = 40
     val zeta = 10
     val n =4
     Logger.getLogger("org").setLevel(Level.ERROR)
@@ -25,7 +26,7 @@ object TemporalTraceAnomalies {
     val preparedForRdd = transformed.map(x => Tuple2.apply(x.id, Vectors.dense(x.elements))) //make it dataframe
     val df = spark.createDataFrame(preparedForRdd).toDF("id", "features")
     val normalizedDF = Utils.normalize(df) //normalize data
-    val reduceDimensionalityDF = Utils.reduceDimensionalityPCA(normalizedDF, 10) //apply pca
+    val reduceDimensionalityDF = Utils.reduceDimensionalityPCA(normalizedDF, dims) //apply pca
 
 
     //method 1: broadcast them in order to create queries
@@ -35,9 +36,10 @@ object TemporalTraceAnomalies {
 
     spark.time {
       val distances = NaiveMethod.initializeDistances(backToRdd,k)
+      println("size: ",distances.first().distances.size)
       val sortedByOutlyingFactor=OutlierDetection.assignOutlyingFactor(distances, k)
       sortedByOutlyingFactor.persist(StorageLevel.MEMORY_AND_DISK)
-      val outliers:Array[(Long,Double)]=sortedByOutlyingFactor.sortBy(_._2,false).top(zeta) //top zeta elements
+      val outliers:Array[(Long,Double)]=sortedByOutlyingFactor.collect().sortBy(_._2).slice(0,zeta+1) //top zeta elements
       println("Outliers based on top zeta reported")
       outliers.foreach(println)
       println("Outliers based on deviating more than n times stdev from mean")
