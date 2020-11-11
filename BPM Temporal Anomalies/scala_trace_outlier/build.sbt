@@ -2,7 +2,7 @@ name := "temporal_trace_anomalies"
 version := "0.1"
 scalaVersion := "2.11.12"
 val sparkVersion = "2.4.4"
-
+libraryDependencies += "nz.ac.waikato.cms.weka" % "weka-stable" % "3.8.0"
 libraryDependencies += "com.typesafe.scala-logging" % "scala-logging-slf4j_2.10" % "2.1.2"
 //libraryDependencies += "org.scalatest" % "scalatest_2.11" % "3.0.4" % "test"
 libraryDependencies += "de.uni.freiburg.iig.telematik" % "SEWOL" % "1.0.2"

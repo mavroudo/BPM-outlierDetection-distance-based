@@ -3,13 +3,14 @@ import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
 
-import Structs.{Event, Sequence}
+import oultierDetectionAlgorithms.Structs.{Event, Sequence}
 import org.apache.spark.ml.feature.{PCA, StandardScaler}
 import org.apache.spark.mllib.linalg.Vectors.zeros
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.XLog
+import oultierDetectionAlgorithms.Structs
 
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable.ListBuffer
@@ -92,22 +93,13 @@ object Utils {
     now.getTime - previous.getTime
   }
 
-  def normalize(log:DataFrame):DataFrame = {
-    val scaler = new StandardScaler()
-      .setInputCol("features")
-      .setOutputCol("scaledFeatures")
-      .setWithStd(true)
-      .setWithMean(false)
-      .fit(log)
-    scaler.transform(log)
+  def distance(v1: Structs.Trace_Vector, v2: Structs.Trace_Vector): Double = {
+    var d: Double = 0
+    v1.elements.zip(v2.elements).foreach(x => {
+      d += math.pow(x._1 - x._2, 2)
+    })
+    math.sqrt(d / v1.elements.length)
   }
 
-  def reduceDimensionalityPCA(log:DataFrame,k:Int):DataFrame={
-    val pca = new PCA()
-      .setInputCol("scaledFeatures")
-      .setOutputCol("pcaFeatures")
-      .setK(k)
-      .fit(log)
-    pca.transform(log)
-  }
+
 }
