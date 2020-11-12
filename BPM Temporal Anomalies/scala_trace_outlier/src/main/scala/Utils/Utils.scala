@@ -1,16 +1,17 @@
+package Utils
+
 import java.io.{File, FileInputStream}
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
 
-import oultierDetectionAlgorithms.Structs.{Event, Sequence}
-import org.apache.spark.ml.feature.{PCA, StandardScaler}
 import org.apache.spark.mllib.linalg.Vectors.zeros
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.deckfour.xes.in.XParserRegistry
 import org.deckfour.xes.model.XLog
 import oultierDetectionAlgorithms.Structs
+import oultierDetectionAlgorithms.Structs.{Event, Sequence}
 
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.mutable.ListBuffer
@@ -48,7 +49,7 @@ object Utils {
         val date: Date = Date.from(ZonedDateTime.parse(timestamp).toInstant)
         val duration = this.duration(previous_time, date)
         previous_time = date
-        alist+=Event(name, df2.format(date), duration)
+        alist += Event(name, df2.format(date), duration)
       }
       Sequence(x._2.toLong, alist.toList)
     }).toList
@@ -81,9 +82,9 @@ object Utils {
     log.traces.map(trace => {
       val v: Array[Double] = zeros(2 * log.activities.size).toArray
       trace.events.foreach(event => {
-        val index=log.activities.indexOf(event.task)
+        val index = log.activities.indexOf(event.task)
         v(index) += 1
-        v(index+log.activities.size)+=event.duration
+        v(index + log.activities.size) += event.duration
       })
       Structs.Trace_Vector(trace.id, v)
     })

@@ -2,6 +2,7 @@ import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
 
+import Utils.Utils
 import org.scalatest.FunSuite
 
 class UtilsTest extends  FunSuite{

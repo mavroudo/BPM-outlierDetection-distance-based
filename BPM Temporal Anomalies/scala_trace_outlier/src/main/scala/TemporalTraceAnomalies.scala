@@ -1,3 +1,4 @@
+import Utils.Preprocess
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
 import oultierDetectionAlgorithms.{Distances, InitializeNeighbors, LOF}
@@ -16,9 +17,9 @@ object TemporalTraceAnomalies {
       .master("local[*]")
       .getOrCreate()
     println(s"Starting Spark version ${spark.version}")
-    val log = Utils.read_xes(filename)
+    val log = Utils.Utils.read_xes(filename)
 
-    val rddTransformed_whole=Preprocess.preprocess(log,dims,Utils.convert_to_vector_both_duration_repetitions)
+    val rddTransformed_whole=Preprocess.preprocess(log,dims,Utils.Utils.convert_to_vector_both_duration_repetitions)
     val rddTransformed=rddTransformed_whole.sample(withReplacement = false,0.01)
     val lof=new LOF(rddTransformed_whole,k,Distances.distanceRMSE)
 
