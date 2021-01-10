@@ -3,7 +3,7 @@ package oultierDetectionAlgorithms
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.storage.StorageLevel
-import oultierDetectionAlgorithms.Structs.{DistanceElement, DistancesFromTrace}
+import Structs.{DistanceElement, DistancesFromTrace}
 
 object InitializeNeighbors {
 

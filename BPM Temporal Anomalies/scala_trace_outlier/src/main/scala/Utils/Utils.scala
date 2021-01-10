@@ -4,7 +4,6 @@ import java.io.{File, FileInputStream}
 import java.text.SimpleDateFormat
 import java.time.ZonedDateTime
 import java.util.Date
-
 import org.apache.spark.mllib.linalg.Vectors.zeros
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession

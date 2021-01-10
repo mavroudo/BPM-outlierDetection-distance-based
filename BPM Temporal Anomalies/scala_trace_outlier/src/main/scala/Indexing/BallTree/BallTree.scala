@@ -1,22 +1,19 @@
 package Indexing.BallTree
 
 import java.io.{BufferedWriter, File, FileWriter}
-
 import Utils.Preprocess
 import Utils.Utils
 import au.com.bytecode.opencsv.CSVWriter
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
-import oultierDetectionAlgorithms.Structs
+import oultierDetectionAlgorithms.Structs.Trace_Vector
 import weka.core.converters.CSVLoader
 import weka.core.{EuclideanDistance, Instance, Instances}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
-
-
-class BallTree(traces: RDD[Structs.Trace_Vector]) {
+class BallTree(traces: RDD[Trace_Vector]) {
   private var wekaBallTree: BallTree_Weka = _
   private val output: String = "output/ball_tree.csv"
   private var data: Instances = _
@@ -46,7 +43,7 @@ class BallTree(traces: RDD[Structs.Trace_Vector]) {
     }).toList
   }
 
-  private def writeToCsv(filePath: String, traces: RDD[Structs.Trace_Vector]): Unit = {
+  private def writeToCsv(filePath: String, traces: RDD[Trace_Vector]): Unit = {
     val outputFile = new BufferedWriter(new FileWriter(filePath))
     val csvWriter = new CSVWriter(outputFile)
     var data: ListBuffer[Array[String]] = new ListBuffer[Array[String]]

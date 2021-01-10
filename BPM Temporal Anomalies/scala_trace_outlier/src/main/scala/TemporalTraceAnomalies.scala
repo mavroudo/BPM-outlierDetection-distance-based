@@ -1,7 +1,7 @@
 import Utils.Preprocess
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
-import oultierDetectionAlgorithms.{Distances, InitializeNeighbors, LOF}
+import oultierDetectionAlgorithms.{Distances, InitializeNeighbors, LOF_Spark}
 
 object TemporalTraceAnomalies {
 
@@ -21,7 +21,7 @@ object TemporalTraceAnomalies {
 
     val rddTransformed_whole=Preprocess.preprocess(log,dims,Utils.Utils.convert_to_vector_both_duration_repetitions)
     val rddTransformed=rddTransformed_whole.sample(withReplacement = false,0.01)
-    val lof=new LOF(rddTransformed_whole,k,Distances.distanceRMSE)
+    val lof=new LOF_Spark(rddTransformed_whole,k,Distances.distanceRMSE)
 
     spark.time{
       lof.initialize(InitializeNeighbors.init_naive)

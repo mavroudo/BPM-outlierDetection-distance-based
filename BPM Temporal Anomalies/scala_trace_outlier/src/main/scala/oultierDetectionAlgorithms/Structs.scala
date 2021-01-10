@@ -16,5 +16,8 @@ object Structs {
 
   case class DistancesFromTrace(id: Long, distances: List[DistanceElement])
 
+  //This is for the "using contextualized"
+  case class Trace_Temporal_KNN(id: Long, signature: String, durations: List[Double])
+
 
 }

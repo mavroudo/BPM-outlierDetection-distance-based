@@ -14,7 +14,7 @@ import org.apache.spark.storage.StorageLevel
  * @param minPts Number of neighbors take into consideration
  * @param distance Distance that will be applied on the Vectors
  */
-class LOF(traces: RDD[Structs.Trace_Vector], minPts: Int, distance: (Structs.Trace_Vector, Structs.Trace_Vector) => Double) {
+class LOF_Spark(traces: RDD[Structs.Trace_Vector], minPts: Int, distance: (Structs.Trace_Vector, Structs.Trace_Vector) => Double) {
   private val spark = SparkSession.builder().getOrCreate()
   private var distances_from_k: RDD[Structs.DistancesFromTrace] = _
   private var neighbors: RDD[(Long, List[(Long, Double, Double, Double)])] = _
