@@ -1,5 +1,6 @@
 package oultierDetectionAlgorithms
 
+import Utils.Preprocess
 import de.lmu.ifi.dbs.elki.database.StaticArrayDatabase
 import de.lmu.ifi.dbs.elki.datasource.{ArrayAdapterDatabaseConnection, DatabaseConnection}
 import oultierDetectionAlgorithms.Structs.Trace_Vector
@@ -8,6 +9,9 @@ import de.lmu.ifi.dbs.elki.data.NumberVector
 import de.lmu.ifi.dbs.elki.database.ids.{DBIDIter, DBIDUtil}
 import de.lmu.ifi.dbs.elki.database.relation.DoubleRelation
 import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.EuclideanDistanceFunction
+import org.apache.spark.ml.linalg.{DenseVector, Vectors}
+import org.apache.spark.rdd.RDD
+import org.apache.spark.sql.SparkSession
 
 object LofElki {
 
@@ -32,7 +36,14 @@ object LofElki {
   }
 
   def converter(log: Structs.Log): Array[Array[Double]] = {
-    val traces: Array[Trace_Vector] = Utils.Utils.convert_to_vector_only_durations(log).collect()
+    val spark = SparkSession.builder().getOrCreate()
+    val transformed: RDD[Trace_Vector] = Utils.Utils.convert_to_vector_only_durations(log)
+    val preparedForRdd = transformed.map(x => Tuple2.apply(x.id, Vectors.dense(x.elements)))
+    val df = spark.createDataFrame(preparedForRdd).toDF("id", "features")
+    val normalizedDF = Preprocess.normalize(df)
+    val traces=normalizedDF.rdd.map(row=>{
+      Structs.Trace_Vector(row.getAs[Long]("id"), row.getAs[DenseVector]("pcaFeatures").values)
+    }).collect()
     val a = Array.ofDim[Double](traces.length, traces.head.elements.length)
     for (t_index <- traces.indices) {
       val trace = traces(t_index).elements
