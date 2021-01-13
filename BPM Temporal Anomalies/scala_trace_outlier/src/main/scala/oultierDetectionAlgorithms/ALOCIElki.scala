@@ -53,7 +53,7 @@ object ALOCIElki {
     val df = spark.createDataFrame(preparedForRdd).toDF("id", "features")
     val normalizedDF = Preprocess.normalize(df)
     val traces=normalizedDF.rdd.map(row=>{
-      Structs.Trace_Vector(row.getAs[Long]("id"), row.getAs[DenseVector]("pcaFeatures").values)
+      Structs.Trace_Vector(row.getAs[Long]("id"), row.getAs[DenseVector]("scaledFeatures").values)
     }).collect()
     val a = Array.ofDim[Double](traces.length, traces.head.elements.length)
     for (t_index <- traces.indices) {

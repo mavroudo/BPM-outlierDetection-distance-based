@@ -13,7 +13,7 @@ import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
 
-object LofElki {
+class LofElki {
 
   def assignScore(log:Structs.Log,k:Int):Array[(Int,Double)]={
     val data = this.converter(log)
@@ -25,9 +25,10 @@ object LofElki {
     val scores: DoubleRelation = results.getScores
     val iter: DBIDIter = scores.iterDBIDs();
     val scoresArray: Array[(Int, Double)] = new Array(log.traces.count().toInt)
+    var counter=0
     while (iter.valid()) {
-      println(DBIDUtil.toString(iter), scores.doubleValue(iter))
-      scoresArray(DBIDUtil.toString(iter).toInt - 1) = (DBIDUtil.toString(iter).toInt, scores.doubleValue(iter))
+      scoresArray(counter) = (DBIDUtil.toString(iter).toInt, scores.doubleValue(iter))
+      counter+=1
       iter.advance()
     }
     scoresArray.sortWith((x, y) => x._2 > y._2)
@@ -42,7 +43,7 @@ object LofElki {
     val df = spark.createDataFrame(preparedForRdd).toDF("id", "features")
     val normalizedDF = Preprocess.normalize(df)
     val traces=normalizedDF.rdd.map(row=>{
-      Structs.Trace_Vector(row.getAs[Long]("id"), row.getAs[DenseVector]("pcaFeatures").values)
+      Structs.Trace_Vector(row.getAs[Long]("id"), row.getAs[DenseVector]("scaledFeatures").values)
     }).collect()
     val a = Array.ofDim[Double](traces.length, traces.head.elements.length)
     for (t_index <- traces.indices) {

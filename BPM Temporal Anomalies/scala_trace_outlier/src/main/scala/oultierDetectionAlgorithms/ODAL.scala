@@ -15,7 +15,7 @@ object ODAL {
       val distances=traces.value.filter(_.signature==trace.signature)
         .map(x=>this.distance(x,trace))
         .sorted
-      val point=Math.min(k+1,distances.size-1)
+      val point=Math.min(k+1,distances.length-1)
       (trace,distances(point),point)
     })
     outliers(kthNeighbor,n)
