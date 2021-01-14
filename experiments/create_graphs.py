@@ -31,7 +31,6 @@ def create_plot(filename):
 
 
 # for different dimensions
-filename="30_activities_3k_0.01_dimensions"
 def create_plot_dimensions(filename):
     data=[]
     with open(filename,"r") as f:
@@ -74,8 +73,44 @@ def create_plot_dimensions(filename):
     plt.ylabel("Percentage of outliers found")
     plt.legend()
     plt.savefig("figs/"+filename+"_accuracy.png")
+    
+
+filename="30_activities_5k_0.1_precision_recall"
+data=[]
+with open(filename,"r") as f:
+    for line in f:
+        data.append(line.replace("\n","").split(","))
+rs_k_50=[]
+for d in data:
+    if d[0]=='50':
+        rs_k_50.append([float(d[1]),float(d[2]),float(d[3])])
+fig=plt.figure()
+plt.plot([i[0] for i in rs_k_50],[i[1] for i in rs_k_50],label="Precision")
+plt.plot([i[0] for i in rs_k_50],[i[2] for i in rs_k_50],label="Recall")
+plt.title("Precision and recall for k=50 and different values of r")
+plt.legend()
+plt.xlabel("r")
+plt.ylabel("Percentage (%)")
+plt.savefig("figs/"+filename+"rs.png")
+
+ks_r_005=[]
+for d in data:
+    if d[1]=='0.01':
+        ks_r_005.append([float(d[0]),float(d[2]),float(d[3])])
+del ks_r_005[-1]
+del ks_r_005[0]
+fig=plt.figure()
+plt.plot([i[0] for i in ks_r_005],[i[1] for i in ks_r_005],label="Precision")
+plt.plot([i[0] for i in ks_r_005],[i[2] for i in ks_r_005],label="Recall")
+plt.title("Precision and recall for r=0.0 and different values of r")
+plt.legend()
+plt.xlabel("r")
+plt.ylabel("Percentage (%)")
+plt.savefig("figs/"+filename+"ks.png")
 
 
+k=[1,3,10,20,50,100,200,500]
+r=[0.01,0.05,0.1,0.15,0.2]
 
 
 

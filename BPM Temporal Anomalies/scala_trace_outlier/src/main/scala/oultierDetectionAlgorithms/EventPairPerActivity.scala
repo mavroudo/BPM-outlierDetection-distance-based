@@ -13,6 +13,42 @@ object EventPairPerActivity {
   //An event pair will be consider outlier, if one or both of the events have less than k neighbors in a radius = r
   def getOutlierPairs(log: Structs.Log, k: Int, r: Double): Array[(Event,Event)] = {
     val spark = SparkSession.builder().getOrCreate()
+    val outlier_events=this.getOutlierEvents(log,k,r)
+      .persist(StorageLevel.MEMORY_AND_DISK)
+
+    val outlier_events_collected = outlier_events.collect()
+    val broadcastOutlierTraceIds=spark.sparkContext.broadcast(outlier_events_collected.map(_.trace_id))
+    val outlying_traces=this.preprocess(log)
+      .groupBy(_.event_name)
+      .map(x => {
+        (x._1, this.min_max_normalization(x._2))
+      })
+      .flatMap(_._2)
+      .filter(event=>broadcastOutlierTraceIds.value.contains(event.trace_id))
+      .groupBy(_.trace_id)
+      .map(events=>{
+        val listEvents=events._2.toList
+          .sortWith((ea,eb)=>ea.event_pos<eb.event_pos)
+        (events._1,listEvents)
+      }).collect()
+
+    val outlierPairs=outlier_events_collected.flatMap(out_event=>{
+      val trace=outlying_traces.filter(_._1==out_event.trace_id).head._2
+      val pairs=ListBuffer[(Event,Event)]()
+      if (out_event.event_pos<=trace.length-2){
+        val nextEvent=trace(out_event.event_pos+1)
+        pairs+=((out_event,Event(out_event.trace_id,nextEvent.event_name,out_event.event_pos+1,nextEvent.duration)))
+      }
+      if (out_event.event_pos>=1){
+        val nextEvent=trace(out_event.event_pos-1)
+        pairs+=((Event(out_event.trace_id,nextEvent.event_name,out_event.event_pos-1,nextEvent.duration),out_event))
+      }
+      pairs.toList
+    })
+    outlier_events.unpersist()
+    outlierPairs
+  }
+  def getOutlierEvents(log: Structs.Log, k: Int, r: Double):RDD[Event]={
     val preprocessedLog=this.preprocess(log)
     val outlier_events = preprocessedLog
       .groupBy(_.event_name)
@@ -41,31 +77,29 @@ object EventPairPerActivity {
       })
       .filter(_._2 < k)
       .map(_._1)
-      .persist(StorageLevel.MEMORY_AND_DISK)
+    outlier_events
+  }
 
-    val outlier_events_collected = outlier_events.collect()
 
-    val broadcastOutlierTraceIds=spark.sparkContext.broadcast(outlier_events_collected.map(_.trace_id))
-    val outlying_traces=log.traces
-      .filter(x=>broadcastOutlierTraceIds.value.contains(x.id)).collect()
-    val broadcastedOutlierTraces = spark.sparkContext.broadcast(outlying_traces)
-    val outlierPairs=outlier_events_collected.flatMap(out_event=>{
-      val trace =broadcastedOutlierTraces.value.filter(_.id==out_event.trace_id).head
-      val pairs=ListBuffer[(Event,Event)]()
-      if (out_event.event_pos<=trace.events.length-2){
-        val nextEvent=trace.events(out_event.event_pos+1)
-        pairs+=((out_event,Event(trace.id,nextEvent.task,out_event.event_pos+1,nextEvent.duration)))
-      }
-      if (out_event.event_pos>=1){
-        val nextEvent=trace.events(out_event.event_pos-1)
-        pairs+=((Event(trace.id,nextEvent.task,out_event.event_pos-1,nextEvent.duration),out_event))
-      }
-      pairs.toList
+  def getMeasurementError(log:Structs.Log,pairs:Array[(Event,Event)],t:Double):Array[(Event,Event,Boolean)]={
+    val means=this.preprocess(log)
+      .groupBy(_.event_name)
+      .map(x => {
+        (x._1, this.min_max_normalization(x._2))
+      })
+      .map(x=>{
+        val mean_value=x._2.map(_.duration).sum/x._2.size
+        (x._1,mean_value)
+      }).collect()
+    pairs.map(pair=>{
+      val meanA=means.filter(_._1==pair._1.event_name).head._2
+      val meanB=means.filter(_._1==pair._2.event_name).head._2
+      val isMeasurement= Math.abs((pair._1.duration-meanA)-(pair._2.duration-meanB))<=t
+      (pair._1,pair._2,isMeasurement)
     })
-    outlier_events.unpersist()
-    outlierPairs
 
   }
+
 
   def preprocess(log: Structs.Log): RDD[Event] = {
     log.traces.zipWithIndex.flatMap(trace => {
