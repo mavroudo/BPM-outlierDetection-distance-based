@@ -10,13 +10,13 @@ import oultierDetectionAlgorithms.{OurMethod, Structs}
 class NaiveMethodTest extends FunSuite with BeforeAndAfterAll {
   private var preprocessed: RDD[Structs.Trace_Vector] = _
   private var spark: SparkSession = _
-  private var results:List[(Int,Int)] =_
+  private var results:List[(String,Int,Int)] =_
   private var log:Structs.Log=_
 
   override def beforeAll(): Unit = {
-    val filename = "input/outliers_financial_log_0.1.xes"
-    val results_file="input/results_financial_log_0.1"
-    results=Results.read(results_file)
+    val filename = "input/outliers_30_activities_3k_0.1.xes"
+    val results_file = "input/results_30_activities_3k_0.1_description"
+    results=Results.read_with_description(results_file)
     val dims = 10
     Logger.getLogger("org").setLevel(Level.ERROR)
     spark = SparkSession.builder()
@@ -28,7 +28,7 @@ class NaiveMethodTest extends FunSuite with BeforeAndAfterAll {
   }
 
   test("Naive method") {
-    val k = 1
+    val k = 100
     val zeta = results.size
 
     val traces=Utils.Utils.convert_to_vector_only_durations(log)
@@ -40,10 +40,10 @@ class NaiveMethodTest extends FunSuite with BeforeAndAfterAll {
     })
 
     spark.time({
-      val rddDistances = NaiveMethod.initialiazeDistancesRDD(preprocessed, k)
+      val rddDistances = NaiveMethod.initializeDistances(preprocessed, k)
       val sortedByOutlyingFactor = OutlierDetection.assignOutlyingFactor(rddDistances, k)
       val outliers: Array[(Long, Double)] = sortedByOutlyingFactor.sortBy(_._2, ascending = false).collect().slice(0, zeta + 1)
-      val found=outliers.count(i => results.map(_._1).contains(i._1))
+      val found=outliers.count(i => results.map(_._2).contains(i._1))
       println(found.toDouble/results.size)
     })
   }

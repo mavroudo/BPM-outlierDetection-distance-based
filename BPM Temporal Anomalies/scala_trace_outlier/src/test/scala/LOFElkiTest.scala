@@ -8,9 +8,9 @@ class LOFElkiTest extends FunSuite {
 
   test("test LoOF from package ELKI") {
     val filename = "input/outliers_30_activities_3k_0.1.xes"
-    val results_file = "input/results_30_activities_3k_0.1"
-    val k=100
-    val results = Results.read(results_file)
+    val results_file = "input/results_30_activities_3k_0.1_description"
+    val k=5
+    val results = Results.read_with_description(results_file)
     val spark = SparkSession.builder()
       .appName("Temporal trace anomaly detection")
       .master("local[*]")
@@ -21,10 +21,21 @@ class LOFElkiTest extends FunSuite {
     val log = Utils.Utils.read_xes(filename)
     spark.time({
       val lof=new LofElki()
-      val outliers = lof.assignScore(log, k).take(results.size)
-      val found = outliers.count(i => results.map(_._1).contains(i._1))
+      val outliers = lof.assignScore(log, k)
+      for(i<-results.indices){
+        val r = results(i)
+        println(outliers.filter(_._1==r._2).head)
+      }
+//      outliers.foreach(x=>{
+//        println(results.filter(_._2==x._1).head)
+//      })
+
+      val found = outliers.count(i => results.map(_._2).contains(i._1))
       println(found.toDouble / results.size)
     })
   }
+
+
+
 
 }

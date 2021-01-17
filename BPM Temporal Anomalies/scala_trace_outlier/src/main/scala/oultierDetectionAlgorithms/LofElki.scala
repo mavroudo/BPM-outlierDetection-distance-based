@@ -8,7 +8,7 @@ import de.lmu.ifi.dbs.elki.algorithm.outlier.lof.LOF
 import de.lmu.ifi.dbs.elki.data.NumberVector
 import de.lmu.ifi.dbs.elki.database.ids.{DBIDIter, DBIDUtil}
 import de.lmu.ifi.dbs.elki.database.relation.DoubleRelation
-import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.EuclideanDistanceFunction
+import de.lmu.ifi.dbs.elki.distance.distancefunction.minkowski.{EuclideanDistanceFunction, SquaredEuclideanDistanceFunction}
 import org.apache.spark.ml.linalg.{DenseVector, Vectors}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SparkSession
